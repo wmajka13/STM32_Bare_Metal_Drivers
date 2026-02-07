@@ -36,7 +36,40 @@ typedef struct
 }SPI_Handle_t;
 
 
+/*****************************************************************************************
+ * 								APIs supported by this driver
+ * 			For more information about APIs check the function definitions
+ *****************************************************************************************/
+/*
+ *  Peripheral Clock setup
+ */
+void SPI_PeriClockControl(SPI_RegDef_t *pSPIx, uint8_t EnorDI); 		/* Enable or Disable clock for given SPI address*/
 
+
+/*
+ * 	Init and De_init
+ */
+void SPI_Init(SPI_Handle_t *pSPIHandle);
+void SPI_DeInit(SPI_RegDef_t *pSPIx);								/* Setting registers back to theirs original state, done using RCC_AHB1RSTR (example)*/
+
+
+/*
+ *  Data send and receive
+ */
+void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t Len);
+void SPI_ReceiveData(SPI_RegDef_t *pSPIx, uint8_t *pRxBuffer, uint32_t Len);
+
+
+/*
+ * 	IRQ Configuration and ISR handling
+ */
+void SPI_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDI);
+void SPI_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
+void SPI_IRQHandling(SPI_Handle_t *pSPIHandle);			/* When there is an interrupt, this function is called */
+
+/*
+ * 	Other peripheral control APIs
+ */
 
 
 

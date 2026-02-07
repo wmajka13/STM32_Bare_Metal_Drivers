@@ -316,7 +316,6 @@ void GPIO_ToggleOutputPin(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber)
  * @brief 		- Enables/Disables ability to use Interrupt from GPIO
  *
  * @param[IRQNumber]		- Number of interrupt
- * @param[IRQPriority]		- Priority of interrupt
  * @param[EnorDI]		- Enable or Disable macro
  *
  * @return		- none
@@ -369,7 +368,7 @@ void GPIO_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDI)
 /***********************************************************
  * @fn			- GPIO_IRQPriorityConfig
  *
- * @brief 		- , allows to set a interrupt priority
+ * @brief 		- allows to set a interrupt priority
  *
  * @param[IRQNumber]		- Number of interrupt
  * @param[IRQPriority]		- Priority of interrupt
