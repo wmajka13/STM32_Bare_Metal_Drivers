@@ -297,12 +297,22 @@ typedef struct
 /*  Bit in APB1RSTR should be set and reseted
  * 	Macros to reset GPIOx peripherals
  */
-#define GPIOA_REG_RESET()		do{ (RCC->APB1RSTR |= (1 << 0 )); (RCC->APB1RSTR &= ~(1 << 0 )); }while(0)
-#define GPIOB_REG_RESET()		do{ (RCC->APB1RSTR |= (1 << 1 )); (RCC->APB1RSTR &= ~(1 << 1 )); }while(0)
-#define GPIOC_REG_RESET()		do{ (RCC->APB1RSTR |= (1 << 2 )); (RCC->APB1RSTR &= ~(1 << 2 )); }while(0)
-#define GPIOD_REG_RESET()		do{ (RCC->APB1RSTR |= (1 << 3 )); (RCC->APB1RSTR &= ~(1 << 3 )); }while(0)
-#define GPIOE_REG_RESET()		do{ (RCC->APB1RSTR |= (1 << 4 )); (RCC->APB1RSTR &= ~(1 << 4 )); }while(0)
-#define GPIOH_REG_RESET()		do{ (RCC->APB1RSTR |= (1 << 7 )); (RCC->APB1RSTR &= ~(1 << 7 )); }while(0)
+#define GPIOA_REG_RESET()		do{ (RCC->AHB1RSTR |= (1 << 0 )); (RCC->AHB1RSTR &= ~(1 << 0 )); }while(0)
+#define GPIOB_REG_RESET()		do{ (RCC->AHB1RSTR |= (1 << 1 )); (RCC->AHB1RSTR &= ~(1 << 1 )); }while(0)
+#define GPIOC_REG_RESET()		do{ (RCC->AHB1RSTR |= (1 << 2 )); (RCC->AHB1RSTR &= ~(1 << 2 )); }while(0)
+#define GPIOD_REG_RESET()		do{ (RCC->AHB1RSTR |= (1 << 3 )); (RCC->AHB1RSTR &= ~(1 << 3 )); }while(0)
+#define GPIOE_REG_RESET()		do{ (RCC->AHB1RSTR |= (1 << 4 )); (RCC->AHB1RSTR &= ~(1 << 4 )); }while(0)
+#define GPIOH_REG_RESET()		do{ (RCC->AHB1RSTR |= (1 << 7 )); (RCC->AHB1RSTR &= ~(1 << 7 )); }while(0)
+
+
+/*
+ * 	Macros to reset SPIx peripherals
+ */
+#define SPI1_REG_RESET()		do{ (RCC->APB2RSTR |= (1 << 12 )); (RCC->APB2RSTR &= ~(1 << 12 )); }while(0)
+#define SPI2_REG_RESET()		do{ (RCC->APB1RSTR |= (1 << 14 )); (RCC->APB1RSTR &= ~(1 << 14 )); }while(0)
+#define SPI3_REG_RESET()		do{ (RCC->APB1RSTR |= (1 << 15 )); (RCC->APB1RSTR &= ~(1 << 15 )); }while(0)
+#define SPI4_REG_RESET()		do{ (RCC->APB2RSTR |= (1 << 13 )); (RCC->APB2RSTR &= ~(1 << 13 )); }while(0)
+#define SPI5_REG_RESET()		do{ (RCC->APB2RSTR |= (1 << 20 )); (RCC->APB2RSTR &= ~(1 << 20 )); }while(0)
 
 
 /*
@@ -365,5 +375,6 @@ typedef struct
  * 	Includes
  */
 #include "stm32f411xx_gpio_driver.h"
+#include "stm32f411xx_spi_driver.h"
 
 #endif /* INC_STM32F411XX_H_ */
