@@ -47,9 +47,8 @@ typedef struct
  * @SPI_BusConfig
  */
 #define SPI_BUS_CONFIG_FD						0
-#define SPI_BUS_CONFIG_FH						1
-#define SPI_BUS_CONFIG_SIMPLEX_TXONLY			2
-#define SPI_BUS_CONFIG_SIMPLEX_RXONLY			3
+#define SPI_BUS_CONFIG_HD						1
+#define SPI_BUS_CONFIG_SIMPLEX_RXONLY			2
 
 
 /* Written in SPI register - SPI control register 1 - BR (Baud rate control) part - chooses the F_PCLK prescaler 2, 4, 8 ... 256
@@ -63,7 +62,6 @@ typedef struct
 #define SPI_SCLK_SPEED_DIV64					5
 #define SPI_SCLK_SPEED_DIV128					6
 #define SPI_SCLK_SPEED_DIV256					7
-
 
 /*
  * @SPI_DFF
@@ -83,14 +81,14 @@ typedef struct
  * @SPI_CPHA
  */
 #define SPI_CPHA_HIGH							1
-#define SPI_CPHA_HIGH							0
+#define SPI_CPHA_LOW							0
 
 
 /*
  * @SPI_SSM
  */
-#define SPI_SSM_HW								1
-#define SPI_SSM_SW								0
+#define SPI_SSM_EN								1
+#define SPI_SSM_DI								0
 
 /*****************************************************************************************
  * 								APIs supported by this driver
