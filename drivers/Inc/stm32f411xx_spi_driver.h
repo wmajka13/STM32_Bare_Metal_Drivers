@@ -66,8 +66,8 @@ typedef struct
 /*
  * @SPI_DFF
  */
-#define SPI_DIFF_8BITS							0
-#define SPI_DIFF_16BITS 						1
+#define SPI_DFF_8BITS							0
+#define SPI_DFF_16BITS 							1
 
 
 /*
@@ -140,7 +140,7 @@ void SPI_IRQHandling(SPI_Handle_t *pSPIHandle);			/* When there is an interrupt,
 /*
  * 	Other peripheral control APIs
  */
-
+void SPI_PeripheralControl(SPI_RegDef_t *pSPIx, uint8_t EnOrDi);
 
 
 

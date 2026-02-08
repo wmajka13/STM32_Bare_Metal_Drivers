@@ -85,6 +85,9 @@ void SPI_PeriClockControl(SPI_RegDef_t *pSPIx, uint8_t EnorDI)
  */
 void SPI_Init(SPI_Handle_t *pSPIHandle)
 {
+	//0. enable peripheral clock
+	SPI_PeriClockControl(pSPIHandle->pSPIx, ENABLE);
+
 	//Configuring the SPI_CR1 register
 	uint32_t tempreg = 0;
 
@@ -181,7 +184,7 @@ uint8_t SPI_GetFlagStatus(SPI_RegDef_t *pSPIx, uint32_t FlagName)
  *
  * @return		- None
  *
- * @note		- None
+ * @note		- This is a blocking call - 2 while functions.
  *
  */
 void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t Len)
@@ -205,7 +208,7 @@ void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t Len)
 			//8bit DFF
 			pSPIx->DR = *pTxBuffer;
 			Len--;
-			pTxBuffer++->
+			pTxBuffer++;
 		}
 	}
 }
@@ -291,5 +294,35 @@ void SPI_IRQHandling(SPI_Handle_t *pSPIHandle)
 /*
  * 	Other peripheral control APIs
  */
+
+/***********************************************************
+ * @fn			- SPI_PeripheralControl
+ *
+ * @brief 		- Enables the SPE bit in SPI_CR1 reg that enables the SPI
+ *
+ * @param[pSPIHandle]		- structure of spi registers
+ * @param[EnOrDi]			- ENABLE OR DISABLE
+ *
+ * @return		- none
+ *
+ * @note		- none
+ *
+ */
+void SPI_PeripheralControl(SPI_RegDef_t *pSPIx, uint8_t EnOrDi)
+{
+	if(EnOrDi == ENABLE)
+	{
+		pSPIx->CR1 |= (1 << SPI_CR1_SPE);
+	} else
+	{
+		pSPIx->CR1 &= ~(1 << SPI_CR1_SPE);
+	}
+
+}
+
+
+
+
+
 
 
