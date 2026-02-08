@@ -156,6 +156,16 @@ void SPI_DeInit(SPI_RegDef_t *pSPIx)
 
 
 
+uint8_t SPI_GetFlagStatus(SPI_RegDef_t *pSPIx, uint32_t FlagName)
+{
+	if(pSPIx->SR & FlagName)
+	{
+		return FLAG_SET;
+	}
+	return FLAG_RESET;
+}
+
+
 /*
  *  Data send and receive
  */
@@ -167,7 +177,7 @@ void SPI_DeInit(SPI_RegDef_t *pSPIx)
  *
  * @param[pSPIx]			- Pointer to structure defining SPI's registers
  * @param[pTxBuffer]		- pointer to a buffer that holds message to be transmitted
- * @param[Len]				- Length of this message
+ * @param[Len]				- Length of this message in bytes
  *
  * @return		- None
  *
@@ -176,7 +186,28 @@ void SPI_DeInit(SPI_RegDef_t *pSPIx)
  */
 void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t Len)
 {
+	while (Len > 0)
+	{
+		//1. wait until TXE is SET
+		while(SPI_GetFlagStatus(pSPIx, SPI_TXE_FLAG) == FLAG_RESET);
 
+		//2. Check the dff bit in cr1
+		if( (pSPIx->CR1 & (1 << SPI_CR1_DFF) ) )
+		{
+			//16bit DFF
+			//1. Load data into DR
+			pSPIx->DR = *((uint16_t*)pTxBuffer); //Trzeba ztypecastowac żeby to był pointer pokazujący na 2bajty, wtedy dereferncja wyciągnie 2 bajty
+			Len--;
+			Len--;
+			(uint16_t*)pTxBuffer++;
+		} else
+		{
+			//8bit DFF
+			pSPIx->DR = *pTxBuffer;
+			Len--;
+			pTxBuffer++->
+		}
+	}
 }
 
 /***********************************************************
@@ -186,7 +217,7 @@ void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t Len)
  *
  * @param[pSPIx]		- Pointer to structure defining SPI's registers
  * @param[pRxBuffer]	- Pointer to a buffer in which received data will be written
- * @param[Len]			- length of received data
+ * @param[Len]			- length of received data in bytes
  *
  * @return		- None
  *
