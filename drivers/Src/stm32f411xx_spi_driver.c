@@ -92,16 +92,16 @@ void SPI_Init(SPI_Handle_t *pSPIHandle)
 	uint32_t tempreg = 0;
 
 	//1. Configure the device mode
-	tempreg |= pSPIHandle->SPIConfig.SPI_BusConfig << 2;
+	tempreg |= pSPIHandle->SPIConfig.SPI_DeviceMode << 2;
 
 	//2. Configure the bus config
-	if (pSPIHandle->SPIConfig.SPI_DeviceMode == SPI_BUS_CONFIG_FD)
+	if (pSPIHandle->SPIConfig.SPI_BusConfig == SPI_BUS_CONFIG_FD)
 	{
 		tempreg &= ~( 1 << SPI_CR1_BIDIMODE );
-	} else if (pSPIHandle->SPIConfig.SPI_DeviceMode == SPI_BUS_CONFIG_FD)
+	} else if (pSPIHandle->SPIConfig.SPI_BusConfig == SPI_BUS_CONFIG_HD)
 	{
 		tempreg |= ( 1 << SPI_CR1_BIDIMODE );
-	} else if (pSPIHandle->SPIConfig.SPI_DeviceMode == SPI_BUS_CONFIG_FD)
+	} else if (pSPIHandle->SPIConfig.SPI_BusConfig == SPI_BUS_CONFIG_SIMPLEX_RXONLY)
 	{
 		tempreg &= ~( 1 << SPI_CR1_BIDIMODE );
 		tempreg |= ( 1 << SPI_CR1_BIDIOE );
