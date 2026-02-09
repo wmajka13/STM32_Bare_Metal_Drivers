@@ -78,6 +78,10 @@ int main(void){
 
 	SPI_SendData(SPI1, (uint8_t*)user_data, strlen(user_data));
 
+	while ( SPI_GetFlagStatus(SPI1, SPI_BSY_FLAG) );
+
+	SPI_PeripheralControl(SPI1, DISABLE);
+
 	while(1);
 
 	return 0;
