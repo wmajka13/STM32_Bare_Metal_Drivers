@@ -320,6 +320,31 @@ void SPI_PeripheralControl(SPI_RegDef_t *pSPIx, uint8_t EnOrDi)
 
 }
 
+/***********************************************************
+ * @fn			- SPI_SSIConfig
+ *
+ * @brief 		- Enables the SSI bit in SPI_CR1 reg that sets NSS to '1' innternally
+ *
+ * @param[pSPIHandle]		- structure of spi registers
+ * @param[EnOrDi]			- ENABLE OR DISABLE
+ *
+ * @return		- none
+ *
+ * @note		- none
+ *
+ */
+void SPI_SSIConfig(SPI_RegDef_t *pSPIx, uint8_t EnOrDi)
+{
+	if(EnOrDi == ENABLE)
+	{
+		pSPIx->CR1 |= (1 << SPI_CR1_SSI);
+	} else
+	{
+		pSPIx->CR1 &= ~(1 << SPI_CR1_SSI);
+	}
+
+}
+
 
 
 

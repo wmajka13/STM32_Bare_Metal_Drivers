@@ -70,6 +70,9 @@ int main(void){
 
 	SPI1_Inits();
 
+	//Setting SSI bit to '1' before enabling the peripheral, makes NSS internally high, avoids MODF error
+	SPI_SSIConfig(SPI1, ENABLE);
+
 	//enable the SPI1 peripheral
 	SPI_PeripheralControl(SPI1, ENABLE);
 
