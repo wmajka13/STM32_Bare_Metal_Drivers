@@ -346,6 +346,32 @@ void SPI_SSIConfig(SPI_RegDef_t *pSPIx, uint8_t EnOrDi)
 }
 
 
+/***********************************************************
+ * @fn			- SPI_SSOEConfig
+ *
+ * @brief 		- Enables the SSOE bit in SPI_CR2 reg that sets NSS to '0' when SPE bit is '1'
+ *
+ * @param[pSPIHandle]		- structure of spi registers
+ * @param[EnOrDi]			- ENABLE OR DISABLE
+ *
+ * @return		- none
+ *
+ * @note		- none
+ *
+ */
+void SPI_SSOEConfig(SPI_RegDef_t *pSPIx, uint8_t EnOrDi)
+{
+	if(EnOrDi == ENABLE)
+	{
+		pSPIx->CR2 |= (1 << SPI_CR2_SSOE);
+	} else
+	{
+		pSPIx->CR2 &= ~(1 << SPI_CR2_SSOE);
+	}
+
+}
+
+
 
 
 
