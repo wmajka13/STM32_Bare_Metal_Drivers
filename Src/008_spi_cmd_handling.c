@@ -10,11 +10,34 @@
 
 /*
  * SPI1, Alternate functionality mode 0 AF05
- * PA4 -> NSS
- * PA5 -> SCLK
- * PA6 -> MISO
- * PA7 -> MOSI
+ * PA4 -> NSS, CH4
+ * PA5 -> SCLK, CH1
+ * PA6 -> MISO, CH3
+ * PA7 -> MOSI, CH2
  */
+
+//COMMAND CODES
+#define COMMAND_LED_CTRL				0x50
+#define COMMAND_SENSOR_READ				0x51
+#define COMMAND_LED_READ				0x52
+#define COMMAND_PRINT					0x53
+#define COMMAND_ID_READ					0x54
+
+#define LED_ON 							1
+#define LED_OFF 						0
+
+//ARDUINO ANALOG PINS
+#define ANALOG_PIN0						0
+#define ANALOG_PIN1						1
+#define ANALOG_PIN2						2
+#define ANALOG_PIN3						3
+#define ANALOG_PIN4						4
+#define ANALOG_PIN5						5
+
+//ARDUINO LED
+#define ARDUINO_LED_PIN 				9
+
+
 
 void delay(void)
 {
@@ -81,9 +104,23 @@ void GPIO_ButtonInit(void)
 	GPIO_Init(&GPIOBtn);
 }
 
+//code for ACK is 0xF5
+uint8_t SPI_VerifyResponse(uint8_t ackbyte)
+{
+	if (ackbyte == 0xF5)
+	{
+		//ack
+		return 1;
+	}
+	//nack
+	return 0;
+}
+
+
 int main(void){
 
-	char user_data[] = "Hello world";
+	uint8_t dummy_write = 0xFF;
+	uint8_t dummy_read;
 
 	//This function is used to initialize the GPIO pins to behave as SPI2 pins
 	SPI1_GPIOInits();
@@ -98,17 +135,33 @@ int main(void){
 	{
 
 		while (GPIO_ReadFromInputPin(GPIOC, GPIO_PIN_NO_13));
+
+		//Debouncing
 		delay();
 
 		//enable the SPI1 peripheral
 		SPI_PeripheralControl(SPI1, ENABLE);
 
-		//first send lentgh of data
-		uint8_t DataLen = strlen(user_data);
-		SPI_SendData(SPI1, &DataLen, 1);
+		//1. CMD_LED_CTRL
+		uint8_t commandcode = COMMAND_LED_CTRL;
+		uint8_t ackbyte;
+		uint8_t args[2];
 
-		//sending data
-		SPI_SendData(SPI1, (uint8_t*)user_data, strlen(user_data));
+		SPI_SendData(SPI1, &commandcode, 1); //sending the command code
+		// we have to do dummy read in order to clear RXNE bit
+		SPI_ReceiveData(SPI1, &dummy_read, 1);
+
+		SPI_SendData(SPI1, &dummy_write, 1); //sending the dummy byte to push the answer from arudino
+		SPI_ReceiveData(SPI1, &ackbyte, 1);
+
+		if ( SPI_VerifyResponse(ackbyte) )
+		{
+			//Send arguments
+			args[0] = ARDUINO_LED_PIN;
+			args[1] = LED_ON;
+
+			SPI_SendData(SPI1, args, 2);
+		}
 
 		while ( SPI_GetFlagStatus(SPI1, SPI_BSY_FLAG) );
 
