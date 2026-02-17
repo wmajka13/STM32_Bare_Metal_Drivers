@@ -567,7 +567,12 @@ static void SPI_RXE_Interrupt_Handle(SPI_Handle_t *pSPIHandle)
 }
 
 
-static void SPI_OVR_ERR_Interrupt_Handle(SPI_Handle_t *pSPIHandle);
+static void SPI_OVR_ERR_Interrupt_Handle(SPI_Handle_t *pSPIHandle)
+{
+	//Clear the OVR flag
+	//Inform the application
+
+}
 
 
 
