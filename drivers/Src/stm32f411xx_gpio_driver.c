@@ -344,7 +344,7 @@ void GPIO_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDI)
 		else if(IRQNumber >= 64 && IRQNumber <= 96)
 		{
 			//program ISER2 reg
-			*NVIC_ISER2 |= ( 1 << (IRQNumber % 62) );
+			*NVIC_ISER2 |= ( 1 << (IRQNumber % 64) );
 		}
 	} else
 	{
@@ -362,7 +362,7 @@ void GPIO_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDI)
 		else if(IRQNumber >= 64 && IRQNumber <= 96)
 		{
 			//program ICER2 reg
-			*NVIC_ICER2 |= ( 1 << (IRQNumber % 62) );
+			*NVIC_ICER2 |= ( 1 << (IRQNumber % 64) );
 		}
 	}
 }

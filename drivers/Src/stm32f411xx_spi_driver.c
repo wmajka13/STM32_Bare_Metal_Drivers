@@ -269,7 +269,43 @@ void SPI_ReceiveData(SPI_RegDef_t *pSPIx, uint8_t *pRxBuffer, uint32_t Len)
  */
 void SPI_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDI)
 {
+	if(EnorDI == ENABLE)
+	{
+		if(IRQNumber <= 31)
+		{
+			//program ISER0 Reg
+			*NVIC_ISER0 |= ( 1 << IRQNumber );
 
+		} else if(IRQNumber > 31 && IRQNumber < 64)
+		{
+			//program ISER1 Reg
+			*NVIC_ISER1 |= ( 1 << (IRQNumber % 32) );
+
+		}
+		else if(IRQNumber >= 64 && IRQNumber <= 96)
+		{
+			//program ISER2 reg
+			*NVIC_ISER2 |= ( 1 << (IRQNumber % 64) );
+		}
+	} else
+	{
+		if(IRQNumber <= 31)
+		{
+			//program ICER0 Reg
+			*NVIC_ICER0 |= ( 1 << IRQNumber );
+
+		} else if(IRQNumber > 31 && IRQNumber < 64)
+		{
+			//program ICER1 Reg
+			*NVIC_ICER1 |= ( 1 << (IRQNumber % 32) );
+
+		}
+		else if(IRQNumber >= 64 && IRQNumber <= 96)
+		{
+			//program ICER2 reg
+			*NVIC_ICER2 |= ( 1 << (IRQNumber % 64) );
+		}
+	}
 }
 
 /***********************************************************

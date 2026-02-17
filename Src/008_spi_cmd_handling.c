@@ -195,7 +195,6 @@ int main(void){
 		}
 
 
-
 		while ( SPI_GetFlagStatus(SPI1, SPI_BSY_FLAG) );
 
 		SPI_PeripheralControl(SPI1, DISABLE);
