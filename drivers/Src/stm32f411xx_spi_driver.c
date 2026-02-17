@@ -452,9 +452,22 @@ uint8_t SPI_SendDataIT(SPI_Handle_t *pSPIHandle, uint8_t *pTxBuffer, uint32_t Le
 
 uint8_t SPI_ReceiveDataIT(SPI_Handle_t *pSPIHandle, uint8_t *pRxBuffer, uint32_t Len)
 {
+	uint8_t state = pSPIHandle->RxState;
 
+	if (state != SPI_BUSY_IN_RX)
+	{
+	//1. Save the Tx buffer address and Len info into global variables
+	pSPIHandle->pRxBuffer = pRxBuffer;
+	pSPIHandle->RxLen = Len;
+	//2. Mark the SPI as busy
+	pSPIHandle->RxState = SPI_BUSY_IN_RX;
+	//3. Enable the TXEIE control bit to get interrrupt whenever Txe flag is set in SR
+	pSPIHandle->pSPIx->CR2 |= ( 1 << SPI_CR2_RXNEIE );
+	//4. Data transmission will be handeled by the ISR code.
+	}
+
+	return state;
 }
-
 
 
 
