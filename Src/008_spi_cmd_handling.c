@@ -163,6 +163,39 @@ int main(void){
 			SPI_SendData(SPI1, args, 2);
 		}
 
+		//2. CMD_SENSOR_READ
+		while (GPIO_ReadFromInputPin(GPIOC, GPIO_PIN_NO_13));
+		delay();
+
+		uint8_t commandcode = COMMAND_SENSOR_READ;
+		uint8_t ackbyte;
+		uint8_t args[2];
+		uint8_t analog_value;
+
+		SPI_SendData(SPI1, &commandcode, 1); //sending the command code
+		// we have to do dummy read in order to clear RXNE bit
+		SPI_ReceiveData(SPI1, &dummy_read, 1);
+
+		SPI_SendData(SPI1, &dummy_write, 1); //sending the dummy byte to push the answer from arudino
+		SPI_ReceiveData(SPI1, &ackbyte, 1);
+
+		if ( SPI_VerifyResponse(ackbyte) )
+		{
+			//Send arguments
+			args[0] = ANALOG_PIN0;
+
+			SPI_SendData(SPI1, args, 1);
+			SPI_ReceiveData(SPI1, &dummy_read, 1);
+
+			//delay to give slave time to read ADC
+			delay();
+
+			SPI_SendData(SPI1, &dummy_write, 1);
+			SPI_ReceiveData(SPI1, &analog_value, 1);
+		}
+
+
+
 		while ( SPI_GetFlagStatus(SPI1, SPI_BSY_FLAG) );
 
 		SPI_PeripheralControl(SPI1, DISABLE);
