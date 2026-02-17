@@ -9,6 +9,7 @@
 #define INC_STM32F411XX_H_
 
 #include <stdint.h>									/* Included for uint32_t */
+#include <stddef.h>
 #define __vo volatile  								/* Shorter name for volatile  */
 
 

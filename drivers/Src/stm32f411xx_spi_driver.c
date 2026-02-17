@@ -6,6 +6,13 @@
  */
 #include "stm32f411xx_spi_driver.h"
 
+
+static void SPI_TXE_Interrupt_Handle(SPI_Handle_t *pSPIHandle);
+static void SPI_RXE_Interrupt_Handle(SPI_Handle_t *pSPIHandle);
+static void SPI_OVR_ERR_Interrupt_Handle(SPI_Handle_t *pSPIHandle);
+
+
+
 /*
  *  Peripheral Clock setup
  */
@@ -346,8 +353,39 @@ void SPI_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority)
  */
 void SPI_IRQHandling(SPI_Handle_t *pSPIHandle)
 {
+	uint8_t temp1, temp2;
+	//check SR for TXE
+	temp1 = pSPIHandle->pSPIx->SR & ( 1 << SPI_SR_TXE);
+	temp2 = pSPIHandle->pSPIx->CR2 & ( 1 << SPI_CR2_TXEIE);
+
+	if ( temp1 && temp2 )
+	{
+		//Handle TXE
+		SPI_TXE_Interrupt_Handle();
+	}
+
+	//check SR for RXNE
+	temp1 = pSPIHandle->pSPIx->SR & ( 1 << SPI_SR_RXNE);
+	temp2 = pSPIHandle->pSPIx->CR2 & ( 1 << SPI_CR2_RXNEIE);
+
+	if ( temp1 && temp2 )
+	{
+		//Handle RXE
+		SPI_RXE_Interrupt_Handle();
+	}
+
+	//check for OVR flag
+	temp1 = pSPIHandle->pSPIx->SR & ( 1 << SPI_SR_OVR);
+	temp2 = pSPIHandle->pSPIx->CR2 & ( 1 << SPI_CR2_ERRIE);
+
+	if ( temp1 && temp2 )
+	{
+		//Handle RXE
+		SPI_OVR_ERR_Interrupt_Handle();
+	}
 
 }
+
 
 
 /*
@@ -468,6 +506,69 @@ uint8_t SPI_ReceiveDataIT(SPI_Handle_t *pSPIHandle, uint8_t *pRxBuffer, uint32_t
 
 	return state;
 }
+
+
+
+/*
+ * 	Handling helper functions
+ */
+
+static void SPI_TXE_Interrupt_Handle(SPI_Handle_t *pSPIHandle)
+{
+	if( (pSPIHandle->pSPIx->CR1 & (1 << SPI_CR1_DFF) ) )
+	{
+		//16bit DFF
+		//1. Load data into DR
+		pSPIHandle->pSPIx->DR = *((uint16_t*)pSPIHandle->pTxBuffer);
+		pSPIHandle->TxLen--;
+		pSPIHandle->TxLen--;
+		(uint16_t*)pSPIHandle->pTxBuffer++;
+	} else
+	{
+		//8bit DFF
+		pSPIHandle->pSPIx->DR = *pSPIHandle->pTxBuffer;
+		pSPIHandle->TxLen--;
+		pSPIHandle->pTxBuffer++;
+	}
+
+	if (! pSPIHandle->TxLen)
+	{
+		//Txlen is zero - close the spi transsmision and inform the application taht tx is over
+		pSPIHandle->pSPIx->CR2 &= ~( 1 << SPI_CR2_TXEIE );
+		pSPIHandle->pTxBuffer = NULL;
+		pSPIHandle->TxState = SPI_READY;
+		SPI_ApplicationEventCallback(pSPIHandle, SPI_EVENT_TX_CMPLT);
+	}
+}
+
+
+static void SPI_RXE_Interrupt_Handle(SPI_Handle_t *pSPIHandle)
+{
+	if ( pSPIHandle->pSPIx->CR1 & (1 << SPI_CR1_DFF) )
+	{
+		*((uint16_t*)pSPIHandle->pRxBuffer) = pSPIHandle->pSPIx->DR;
+		pSPIHandle->RxLen -= 2;
+		(uint16_t*)pSPIHandle->pRxBuffer++;
+	} else
+	{
+		*(pSPIHandle->pRxBuffer) = (uint8_t) pSPIHandle->pSPIx->DR;
+		pSPIHandle->RxLen--;
+		pSPIHandle->pRxBuffer++;
+	}
+
+	if (! pSPIHandle->RxLen)
+	{
+		//Txlen is zero - close the spi transsmision and inform the application that tx is over
+		pSPIHandle->pSPIx->CR2 &= ~( 1 << SPI_CR2_RXNEIE );
+		pSPIHandle->pRxBuffer = NULL;
+		pSPIHandle->RxState = SPI_READY;
+		SPI_ApplicationEventCallback(pSPIHandle, SPI_EVENT_RX_CMPLT);
+	}
+}
+
+
+static void SPI_OVR_ERR_Interrupt_Handle(SPI_Handle_t *pSPIHandle);
+
 
 
 
