@@ -323,8 +323,14 @@ void SPI_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDI)
  */
 void SPI_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority)
 {
+	// 1. finding out IPR reg
+	uint32_t iprx = IRQNumber / 4;
+	uint8_t iprx_byte = IRQNumber % 4;
 
+	uint8_t shift_amount = ( 8 * iprx_byte ) + (8 - NO_PR_BITS_IMPLEMENTED);
+	*(NVIC_PR_BASE_ADDR + iprx) |= ( IRQPriority << shift_amount );
 }
+
 
 /***********************************************************
  * @fn			- GPIO_IRQHandling
@@ -425,7 +431,29 @@ void SPI_SSOEConfig(SPI_RegDef_t *pSPIx, uint8_t EnOrDi)
 }
 
 
+uint8_t SPI_SendDataIT(SPI_Handle_t *pSPIHandle, uint8_t *pTxBuffer, uint32_t Len)
+{
+	uint8_t state = pSPIHandle->TxState;
 
+	if (state != SPI_BUSY_IN_TX)
+	{
+	//1. Save the Tx buffer address and Len info into global variables
+	pSPIHandle->pTxBuffer = pTxBuffer;
+	pSPIHandle->TxLen = Len;
+	//2. Mark the SPI as busy
+	pSPIHandle->TxState = SPI_BUSY_IN_TX;
+	//3. Enable the TXEIE control bit to get interrrupt whenever Txe flag is set in SR
+	pSPIHandle->pSPIx->CR2 |= ( 1 << SPI_CR2_TXEIE );
+	//4. Data transmission will be handeled by the ISR code.
+	}
+
+	return state;
+}
+
+uint8_t SPI_ReceiveDataIT(SPI_Handle_t *pSPIHandle, uint8_t *pRxBuffer, uint32_t Len)
+{
+
+}
 
 
 
