@@ -167,9 +167,7 @@ int main(void){
 		while (GPIO_ReadFromInputPin(GPIOC, GPIO_PIN_NO_13));
 		delay();
 
-		uint8_t commandcode = COMMAND_SENSOR_READ;
-		uint8_t ackbyte;
-		uint8_t args[2];
+		commandcode = COMMAND_SENSOR_READ;
 		uint8_t analog_value;
 
 		SPI_SendData(SPI1, &commandcode, 1); //sending the command code

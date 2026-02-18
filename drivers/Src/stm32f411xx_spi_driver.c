@@ -361,7 +361,7 @@ void SPI_IRQHandling(SPI_Handle_t *pSPIHandle)
 	if ( temp1 && temp2 )
 	{
 		//Handle TXE
-		SPI_TXE_Interrupt_Handle();
+		SPI_TXE_Interrupt_Handle(pSPIHandle);
 	}
 
 	//check SR for RXNE
@@ -371,7 +371,7 @@ void SPI_IRQHandling(SPI_Handle_t *pSPIHandle)
 	if ( temp1 && temp2 )
 	{
 		//Handle RXE
-		SPI_RXE_Interrupt_Handle();
+		SPI_RXE_Interrupt_Handle(pSPIHandle);
 	}
 
 	//check for OVR flag
@@ -381,7 +381,7 @@ void SPI_IRQHandling(SPI_Handle_t *pSPIHandle)
 	if ( temp1 && temp2 )
 	{
 		//Handle RXE
-		SPI_OVR_ERR_Interrupt_Handle();
+		SPI_OVR_ERR_Interrupt_Handle(pSPIHandle);
 	}
 
 }
@@ -507,6 +507,30 @@ uint8_t SPI_ReceiveDataIT(SPI_Handle_t *pSPIHandle, uint8_t *pRxBuffer, uint32_t
 	return state;
 }
 
+void SPI_ClearOVRFlag(SPI_RegDef_t *pSPIx)
+{
+	uint8_t temp;
+	temp = pSPIx->DR;
+	temp = pSPIx->SR;
+	(void)temp;
+}
+
+void SPI_CloseTransmission(SPI_Handle_t *pSPIHandle)
+{
+	pSPIHandle->pSPIx->CR2 &= ~( 1 << SPI_CR2_TXEIE );
+	pSPIHandle->pTxBuffer = NULL;
+	pSPIHandle->TxLen = 0;
+	pSPIHandle->TxState = SPI_READY;
+}
+
+void SPI_CloseReception(SPI_Handle_t *pSPIHandle)
+{
+	pSPIHandle->pSPIx->CR2 &= ~( 1 << SPI_CR2_RXNEIE );
+	pSPIHandle->pRxBuffer = NULL;
+	pSPIHandle->RxLen = 0;
+	pSPIHandle->RxState = SPI_READY;
+}
+
 
 
 /*
@@ -534,9 +558,7 @@ static void SPI_TXE_Interrupt_Handle(SPI_Handle_t *pSPIHandle)
 	if (! pSPIHandle->TxLen)
 	{
 		//Txlen is zero - close the spi transsmision and inform the application taht tx is over
-		pSPIHandle->pSPIx->CR2 &= ~( 1 << SPI_CR2_TXEIE );
-		pSPIHandle->pTxBuffer = NULL;
-		pSPIHandle->TxState = SPI_READY;
+		SPI_CloseTransmission(pSPIHandle);
 		SPI_ApplicationEventCallback(pSPIHandle, SPI_EVENT_TX_CMPLT);
 	}
 }
@@ -559,9 +581,7 @@ static void SPI_RXE_Interrupt_Handle(SPI_Handle_t *pSPIHandle)
 	if (! pSPIHandle->RxLen)
 	{
 		//Txlen is zero - close the spi transsmision and inform the application that tx is over
-		pSPIHandle->pSPIx->CR2 &= ~( 1 << SPI_CR2_RXNEIE );
-		pSPIHandle->pRxBuffer = NULL;
-		pSPIHandle->RxState = SPI_READY;
+		SPI_CloseReception(pSPIHandle);
 		SPI_ApplicationEventCallback(pSPIHandle, SPI_EVENT_RX_CMPLT);
 	}
 }
@@ -571,6 +591,16 @@ static void SPI_OVR_ERR_Interrupt_Handle(SPI_Handle_t *pSPIHandle)
 {
 	//Clear the OVR flag
 	//Inform the application
+	uint8_t temp;
+	//1. clear the ovr flag
+	if(pSPIHandle->TxState != SPI_BUSY_IN_TX)
+	{
+		temp = pSPIHandle->pSPIx->DR;
+		temp = pSPIHandle->pSPIx->SR;
+	}
+	(void)temp;
+	//2. Inform the application
+	SPI_ApplicationEventCallback(pSPIHandle, SPI_EVENT_OVR_ERR);
 
 }
 
