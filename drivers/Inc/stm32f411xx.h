@@ -10,7 +10,9 @@
 
 #include <stdint.h>									/* Included for uint32_t */
 #include <stddef.h>
+
 #define __vo volatile  								/* Shorter name for volatile  */
+#define __weak __attribute__((weak))					/* Shorter name for weak attribute	*/
 
 
 /************************************* Processor Specific Details **************************/

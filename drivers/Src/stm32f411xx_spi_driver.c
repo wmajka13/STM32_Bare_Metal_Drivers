@@ -604,6 +604,13 @@ static void SPI_OVR_ERR_Interrupt_Handle(SPI_Handle_t *pSPIHandle)
 
 }
 
+// __weak = __attribute__((weak))
+__weak void SPI_ApplicationEventCallback(SPI_Handle_t *pSPIHandle, uint8_t AppEv)
+{
+	//weak implementation that can be ovveride by application
+
+}
+
 
 
 

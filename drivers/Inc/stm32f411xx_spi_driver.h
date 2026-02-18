@@ -175,4 +175,9 @@ void SPI_ClearOVRFlag(SPI_RegDef_t *pSPIx);
 void SPI_CloseTransmission(SPI_Handle_t *pSPIHandle);
 void SPI_CloseReception(SPI_Handle_t *pSPIHandle);
 
+/*
+ * 	Application callback
+ */
+void SPI_ApplicationEventCallback(SPI_Handle_t *pSPIHandle, uint8_t AppEv);
+
 #endif /* INC_STM32F411XX_SPI_DRIVER_H_ */
