@@ -510,7 +510,6 @@ typedef struct
 #define I2C_SR2_FS				15
 
 
-
 /*
  * 	Includes
  */
