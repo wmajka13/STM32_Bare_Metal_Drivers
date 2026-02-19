@@ -341,6 +341,14 @@ typedef struct
 
 
 /*
+ * 	Macros to reset I2Cx peripherals
+ */
+#define I2C1_REG_RESET()		do{ (RCC->APB1RSTR |= (1 << 21 )); (RCC->APB1RSTR &= ~(1 << 21 )); }while(0)
+#define I2C2_REG_RESET()		do{ (RCC->APB1RSTR |= (1 << 22 )); (RCC->APB1RSTR &= ~(1 << 22 )); }while(0)
+#define I2C3_REG_RESET()		do{ (RCC->APB1RSTR |= (1 << 23 )); (RCC->APB1RSTR &= ~(1 << 23 )); }while(0)
+
+
+/*
  * Returns port code for given GPIOx base address
  */
 #define GPIO_BASEADDR_TO_CODE(x) 	( (x == GPIOA) ? 0 :\
