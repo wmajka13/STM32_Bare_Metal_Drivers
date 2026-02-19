@@ -53,12 +53,26 @@ void I2C_Init(I2C_Handle_t *pI2CHandle)
 	uint32_t tempreg = 0;
 	//1. Configure the Mode (standard or fast )
 
-	//2. Configure the speed of the serial clock (SCL)
+	//2.1 Configure the speed of the serial clock (SCL), configuring the freq in cr2
+	tempreg = 0;
+	tempreg |= RCC_GetPCLK1Value() / 10e6U;
+	pI2CHandle->pI2Cx->CR2 = (tempreg & 0x3F); //masking because we only want to se first 5bits
+	//2.2 Configure the CCR
+	uint16_t ccr_value = 0;
+	tempreg = 0;
+	//TODO:FINISH CCR CALCS
 
 	//3. Configure the device address (Applicable when device is slave)
+	tempreg = 0;
+	tempreg |= pI2CHandle->I2C_Config.I2C_DeviceAddress << 1;
+	tempreg |= ( 1 << 14 ); //manual says that this bit should always be kept high by software
+	pI2CHandle->pI2Cx->OAR1 = tempreg
 
 	//4. Enable the Acking
+	tempreg = 0;
 	tempreg |= pI2CHandle->I2C_Config.I2C_ACKControl << I2C_CR1_ACK;
+	pI2CHandle->pI2Cx->CR1 = tempreg;
+
 	//5. Configure the rise time for I2C pins (will discuss later )
 }
 
