@@ -13,10 +13,9 @@ uint8_t APB1_PreScaler[4] = {2, 4, 8, 16};
 
 static inline void I2C_GenerateStartCondition(I2C_RegDef_t *pI2Cx);
 static inline void I2C_ExecuteAddressPhase(I2C_RegDef_t *pI2Cx, uint8_t SlaveAddr);
+static inline void I2C_ClearADDRFlag(I2C_RegDef_t *pI2Cx);
+static inline void I2C_GenerateStopCondition(I2C_RegDef_t *pI2Cx);
 
-
-
-static inline void I2C_GenerateStartCondition(I2C_RegDef_t *pI2Cx) { pI2Cx->CR1 |= ( 1 << I2C_CR1_START ); }
 
 static inline void I2C_ExecuteAddressPhase(I2C_RegDef_t *pI2Cx, uint8_t SlaveAddr)
 {
@@ -24,6 +23,18 @@ static inline void I2C_ExecuteAddressPhase(I2C_RegDef_t *pI2Cx, uint8_t SlaveAdd
 	SlaveAddr &= ~(1);
 	pI2Cx->DR = SlaveAddr;
 }
+
+static inline void I2C_ClearADDRFlag(I2C_RegDef_t *pI2Cx)
+{
+	volatile uint32_t temp;
+	temp = pI2Cx->SR1;
+	temp = pI2Cx->SR2;
+	(void)temp;
+}
+
+static inline void I2C_GenerateStartCondition(I2C_RegDef_t *pI2Cx) { pI2Cx->CR1 |= ( 1 << I2C_CR1_START ); }
+static inline void I2C_GenerateStopCondition(I2C_RegDef_t *pI2Cx) { pI2Cx->CR1 |= ( 1 << I2C_CR1_STOP ); }
+
 
 /*
  *  Peripheral Clock setup
@@ -130,7 +141,7 @@ void I2C_DeInit(I2C_RegDef_t *pI2Cx) /* Setting registers back to theirs origina
 	}
 }
 
-
+//TODO
 void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint32_t Len, uint8_t SlaveAddr)
 {
 	//1. Generate the START condition
@@ -138,27 +149,37 @@ void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint32_t L
 
 	//2. confirm that start generation is completed by checking the SB flag in the SR1
 	// Note: Until SB is cleared SCL will be stretched (pulled to LOW)
-	while ( ! I2C_GetFlagStatus(pI2CHandle->pI2Cx, I2C_FLAG_SB) ) //we chceck and for SB and read the SR1 simultaneously
-	{
 
-	}
+	while ( ! I2C_GetFlagStatus(pI2CHandle->pI2Cx, I2C_FLAG_SB) ); //we chceck and for SB and read the SR1 simultaneously
 
 	//3. Send the address of the slave with r/nw bit set to w(0) (total 8 bits )
 	I2C_ExecuteAddressPhase(pI2CHandle->pI2Cx, SlaveAddr);
 
-	//4. Confirm that address phase is completed by checking the ADDR flag in teh SR1
+	//4. Confirm that address phase is completed by checking the ADDR flag in the SR1
+	while ( ! I2C_GetFlagStatus(pI2CHandle->pI2Cx, I2C_FLAG_ADDR) );
 
 	//5. clear the ADDR flag according to its software sequence
 	// Note: Until ADDR is cleared SCL will be stretched (pulled to LOW)
+	I2C_ClearADDRFlag(pI2CHandle->pI2Cx);
 
 	//6. send the data until Len becomes 0
+	while (Len > 0)
+	{
+		while ( ! I2C_GetFlagStatus(pI2CHandle->pI2Cx, I2C_FLAG_TxE) ) //waits until TxE=1
+		pI2CHandle->pI2Cx->DR = *pTxBuffer;
+		pTxBuffer++;
+		Len--;
+	}
 
 	//7. when Len becomes zero wait for TXE=1 and BTF=1 before generating the STOP condition
 	// Note: TXE=1 , BTF=1 , means that both SR and DR are empty and next transmission should begin
 	// when BTF=1 SCL will be stretched (pulled to LOW)
+	while ( ! I2C_GetFlagStatus(pI2CHandle->pI2Cx, I2C_FLAG_TxE) );
+	while ( ! I2C_GetFlagStatus(pI2CHandle->pI2Cx, I2C_FLAG_BTF) );
 
 	//8. Generate STOP condition and master need not to wait for the completion of stop condition.
 	// Note: generating STOP, automatically clears the BTF
+	I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
 }
 
 
