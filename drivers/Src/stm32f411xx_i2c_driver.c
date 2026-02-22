@@ -122,7 +122,16 @@ void I2C_Init(I2C_Handle_t *pI2CHandle)
 	tempreg |= pI2CHandle->I2C_Config.I2C_ACKControl << I2C_CR1_ACK;
 	pI2CHandle->pI2Cx->CR1 = tempreg;
 
-	//5. Configure the rise time for I2C pins (TRISE register)
+	//5. Configure the rise time for I2C pins (TRISE register)TODO:
+	tempreg = 0;
+	if (pI2CHandle->I2C_Config->I2C_FMDutyCycle <= I2C_SCL_SPEED_SM)
+	{
+		tempreg = (I2C_TRISE_MAX_SM * RCC_GetPCLK1Value() * 1000) + 1;  //mult by 1000 because PCLK in MHz, TRISE
+	} else
+	{
+		tempreg = (I2C_TRISE_MAX_FM * RCC_GetPCLK1Value() * 1000) + 1;
+	}
+	pI2CHandle->pI2Cx->TRISE = (tempreg & 0x3F);
 
 }
 
@@ -141,7 +150,6 @@ void I2C_DeInit(I2C_RegDef_t *pI2Cx) /* Setting registers back to theirs origina
 	}
 }
 
-//TODO
 void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint32_t Len, uint8_t SlaveAddr)
 {
 	//1. Generate the START condition
@@ -287,7 +295,7 @@ uint32_t RCC_GetPullOutputClock(void)
 }
 
 
-
+//returns frequency of PLCK in Mhz
 uint32_t RCC_GetPCLK1Value(void)
 {
 	uint32_t pclk1, SystemClk;

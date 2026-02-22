@@ -71,6 +71,12 @@ typedef struct
 #define I2C_FLAG_TIMEOUT			(1 << I2C_SR1_TIMEOUT)
 
 
+/*
+ *  TRISE time
+ */
+#define I2C_TRISE_MAX_SM			1000 		//ns
+#define I2C_TRISE_MAX_FM			300 		//ns
+
 /*****************************************************************************************
  * 								APIs supported by this driver
  * 			For more information about APIs check the function definitions
