@@ -57,16 +57,39 @@ void I2C_Init(I2C_Handle_t *pI2CHandle)
 	tempreg = 0;
 	tempreg |= RCC_GetPCLK1Value() / 10e6U;
 	pI2CHandle->pI2Cx->CR2 = (tempreg & 0x3F); //masking because we only want to se first 5bits
+
 	//2.2 Configure the CCR
 	uint16_t ccr_value = 0;
 	tempreg = 0;
-	//TODO:FINISH CCR CALCS
+
+	//setting the F/S bit and CCRbits in CCR
+	if (pI2CHandle->I2C_Config.I2C_SCLSpeed <= I2C_SCL_SPEED_SM)
+	{
+
+		ccr_value = RCC_GetPCLK1Value() / (2 * pI2CHandle->I2C_Config.I2C_SCLSpeed);
+		tempreg |= (ccr_value & 0xFFF);
+	} else
+	{
+		tempreg |= (1 << I2C_CCR_FS);
+		tempreg |= (pI2CHandle->I2C_Config.I2C_FMDutyCycle << I2C_CCR_DUTY);
+		if (pI2CHandle->I2C_Config.I2C_FMDutyCycle == I2C_FM_DUTY_2)
+		{
+			ccr_value = RCC_GetPCLK1Value() / (3 * pI2CHandle->I2C_Config.I2C_SCLSpeed);
+		} else
+		{
+			ccr_value = RCC_GetPCLK1Value() / (25 * pI2CHandle->I2C_Config.I2C_SCLSpeed);
+		}
+		tempreg |= (ccr_value & 0xFFF);
+	}
+
+	pI2CHandle->pI2Cx->CCR = tempreg;
+
 
 	//3. Configure the device address (Applicable when device is slave)
 	tempreg = 0;
 	tempreg |= pI2CHandle->I2C_Config.I2C_DeviceAddress << 1;
 	tempreg |= ( 1 << 14 ); //manual says that this bit should always be kept high by software
-	pI2CHandle->pI2Cx->OAR1 = tempreg
+	pI2CHandle->pI2Cx->OAR1 = tempreg;
 
 	//4. Enable the Acking
 	tempreg = 0;
