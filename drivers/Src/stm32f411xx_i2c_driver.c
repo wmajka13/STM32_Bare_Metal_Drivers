@@ -202,7 +202,7 @@ void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint32_t L
 	I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
 }
 
-//TODO
+
 void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t Len, uint8_t SlaveAddr)
 {
     //1. Generate the START condition
@@ -262,11 +262,14 @@ void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t
             //read the data from data register in to buffer
             *pRxBuffer = pI2CHandle->pI2Cx->DR;
             //increment the buffer address
-            pRxBuffer+=1;
+            pRxBuffer++;
         }
     }
 
-    I2C_ManageAcking(pI2CHandle->pI2Cx, I2C_ACK_ENABLE);
+    if (pI2CHandle->I2C_Config.I2C_ACKControl == I2C_ACK_ENABLE)
+    {
+        I2C_ManageAcking(pI2CHandle->pI2Cx, I2C_ACK_ENABLE);
+    }
 }
 
 
