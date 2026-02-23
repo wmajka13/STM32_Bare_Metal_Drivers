@@ -136,7 +136,7 @@ void I2C_Init(I2C_Handle_t *pI2CHandle)
 
 	//5. Configure the rise time for I2C pins (TRISE register)
 	tempreg = 0;
-	if (pI2CHandle->I2C_Config->I2C_FMDutyCycle <= I2C_SCL_SPEED_SM)
+	if (pI2CHandle->I2C_Config.I2C_FMDutyCycle <= I2C_SCL_SPEED_SM)
 	{
 		tempreg = (I2C_TRISE_MAX_SM * RCC_GetPCLK1Value() * 1000) + 1;  //mult by 1000 because PCLK in MHz, TRISE
 	} else
@@ -223,16 +223,16 @@ void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t
     if(Len == 1)
     {
         //Disable Acking
-    	pI2CHandle->pI2Cx->CR1 &= ~( 1 << I2C_CR1_ACK );
+    	I2C_ManageAcking(pI2CHandle->pI2Cx, I2C_ACK_DISABLE);
+
+    	//generate STOP condition
+		I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
 
         //clear the ADDR flag
     	I2C_ClearADDRFlag(pI2CHandle->pI2Cx);
 
         //wait until  RXNE becomes 1
     	while ( ! I2C_GetFlagStatus(pI2CHandle->pI2Cx, I2C_FLAG_RxNE) );
-
-        //generate STOP condition
-    	I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
 
         //read data in to buffer
     	*pRxBuffer = pI2CHandle->pI2Cx->DR;
@@ -254,7 +254,7 @@ void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t
             if(i == 2) //if last 2 bytes are remaining
             {
                 //clear the ack bit
-            	pI2CHandle->pI2Cx->CR1 &= ~( 1 << I2C_CR1_ACK );
+            	I2C_ManageAcking(pI2CHandle->pI2Cx, I2C_ACK_DISABLE);
                 //generate STOP condition
             	I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
             }
@@ -266,7 +266,7 @@ void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t
         }
     }
 
-    pI2CHandle->pI2Cx->CR1 |= ( 1 << I2C_CR1_ACK );
+    I2C_ManageAcking(pI2CHandle->pI2Cx, I2C_ACK_ENABLE);
 }
 
 
@@ -429,3 +429,16 @@ uint8_t I2C_GetFlagStatus(I2C_RegDef_t *pI2Cx, uint32_t FlagName)
 	}
 	return FLAG_RESET;
 }
+
+void I2C_ManageAcking(I2C_RegDef_t *pI2Cx, uint8_t EnOrDi)
+{
+	if (EnOrDi == I2C_ACK_ENABLE)
+	{
+		pI2Cx->CR1 |= ( 1 << I2C_CR1_ACK );
+	} else
+	{
+		pI2Cx->CR1 &= ~( 1 << I2C_CR1_ACK );
+	}
+}
+
+
