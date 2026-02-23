@@ -63,6 +63,11 @@ typedef struct
 #define I2C_FM_DUTY_2				0
 #define I2C_FM_DUTY_16_9			1
 
+/*
+ *  I2C_sr
+ */
+#define I2C_DISABLE_SR				DISABLE
+#define I2C_ENABLE_SR				ENABLE
 
 /*
  * I2C SR Flags
@@ -118,12 +123,18 @@ void I2C_DeInit(I2C_RegDef_t *pI2Cx);								/* Setting registers back to theirs
 void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint32_t Len, uint8_t SlaveAddr);
 void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t Len, uint8_t SlaveAddr);
 
+uint8_t  I2C_MasterSendDataIT(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint32_t Len, uint8_t SlaveAddr, uint8_t Sr);
+uint8_t I2C_MasterReceiveDataIT(I2C_Handle_t *pI2CHandle,uint8_t *pRxBuffer, uint32_t Len, uint8_t SlaveAddr,uint8_t Sr);
+
 
 /*
  * 	IRQ Configuration and ISR handling
  */
 void I2C_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDI);
 void I2C_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
+
+void I2C_EV_IRQHandling(I2C_Handle_t *pI2CHandle);
+void I2C_ER_IRQHandling(I2C_Handle_t *pI2CHandle);
 
 /*
  * 	Other peripheral control APIs
