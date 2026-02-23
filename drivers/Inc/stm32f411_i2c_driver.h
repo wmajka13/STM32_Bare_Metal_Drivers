@@ -38,7 +38,7 @@ typedef struct
 	uint32_t 			RxLen;					/* 		Storing Tx length					*/
 	uint8_t 			TxRxState;				/* 		Storing the communication state		*/
 	uint8_t				DevAddr;				/* 		Storing address of device/slave		*/
-	uint32_t 			RxSize;					/* 		Storing Rx size						*/
+	uint32_t 			RxSize;					/* 		Storing Rx size	- starting RxLen	*/
 	uint8_t				Sr;						/* 		Storing reapted start value			*/
 
 }I2C_Handle_t;
