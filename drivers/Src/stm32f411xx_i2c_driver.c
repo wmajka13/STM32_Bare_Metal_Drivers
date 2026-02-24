@@ -535,6 +535,51 @@ uint8_t I2C_MasterReceiveDataIT(I2C_Handle_t *pI2CHandle,uint8_t *pRxBuffer, uin
 	return busystate;
 }
 
+void I2C_MasterHandleRXNEInterrupt(I2C_Handle_t *pI2CHandle)
+{
+	//data reception
+	if (pI2CHandle->RxSize == 1)
+	{
+		*pI2CHandle->pRxBuffer = pI2CHandle->pI2Cx->DR;
+		pI2CHandle->RxLen--;
+	}
+
+	if (pI2CHandle->RxSize > 1)
+	{
+		if (pI2CHandle->RxLen == 2)
+		{
+			I2C_ManageAcking(pI2CHandle->pI2Cx, DISABLE); //clear the ack
+		}
+		//Read the DR
+		*pI2CHandle->pRxBuffer = pI2CHandle->pI2Cx->DR;
+		pI2CHandle->RxLen--;
+		pI2CHandle->pRxBuffer++;
+	}
+
+	if (pI2CHandle->RxLen == 0)
+	{
+		//close the i2c data reception and notify the app
+		if (pI2CHandle->Sr == I2C_DISABLE_SR) //Reapted start disabled
+		{
+			I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
+		}
+		I2C_CloseReceiveData(pI2CHandle); //TODO
+		I2C_ApplicationEventCallback(pI2CHandle, I2C_EV_RX_CMPLT); //TODO
+	}
+}
+
+void I2C_MasterHandleTXEInterrupt(I2C_Handle_t *pI2CHandle)
+{
+
+	if (pI2CHandle->TxLen > 0)
+	{
+		pI2CHandle->pI2Cx->DR = *(pI2CHandle->pTxBuffer);
+		pI2CHandle->TxLen--;
+		pI2CHandle->pTxBuffer++;
+
+	}
+
+}
 
 //TODO
 void I2C_EV_IRQHandling(I2C_Handle_t *pI2CHandle)
@@ -591,7 +636,9 @@ void I2C_EV_IRQHandling(I2C_Handle_t *pI2CHandle)
 
 					// Generate stop cond
 					if (pI2CHandle->Sr == I2C_DISABLE_SR) //Reapted start disabled
+					{
 						I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
+					}
 
 					// Reset all the member elements of structure
 					I2C_CloseSendData(pI2CHandle); //TODO
@@ -627,13 +674,7 @@ void I2C_EV_IRQHandling(I2C_Handle_t *pI2CHandle)
 			// Here should be a transmission, we transmit when the i2c is busy in tx
 			if (pI2CHandle->TxRxState == I2C_BUSY_IN_TX)
 			{
-				if (pI2CHandle->TxLen > 0)
-				{
-					pI2CHandle->pI2Cx->DR = *(pI2CHandle->pTxBuffer);
-					pI2CHandle->TxLen--;
-					pI2CHandle->pTxBuffer++;
-
-				}
+				I2C_MasterHandleTXEInterrupt(pI2CHandle);
 			}
 		}
 	}
@@ -647,41 +688,12 @@ void I2C_EV_IRQHandling(I2C_Handle_t *pI2CHandle)
 		{
 			if (pI2CHandle->pI2Cx->SR2 & ( 1 << I2C_SR2_MSL )) // checking whether the device is a master!
 			{
-				//data reception
-				if (pI2CHandle->RxSize == 1)
-				{
-					*pI2CHandle->pRxBuffer = pI2CHandle->pI2Cx->DR;
-					pI2CHandle->RxLen--;
-				}
 
-				if (pI2CHandle->RxSize > 1)
-				{
-					if (pI2CHandle->RxLen == 2)
-					{
-						//clear the acl
-						I2C_ManageAcking(pI2CHandle->pI2Cx, DISABLE);
-					}
-
-					//Read the DR
-					*pI2CHandle->pRxBuffer = pI2CHandle->pI2Cx->DR;
-					pI2CHandle->RxLen--;
-					pI2CHandle->pRxBuffer++;
-				}
-
-			}	if (pI2CHandle->RxLen == 0) {
-				//close the i2c data reception and notify the app
-				if (pI2CHandle->Sr == I2C_DISABLE_SR) //Reapted start disabled
-					I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
-
-				I2C_CloseReceiveData(pI2CHandle); //TODO
-
-				I2C_ApplicationEventCallback(pI2CHandle, I2C_EV_RX_CMPLT); //TODO
-
+				I2C_MasterHandleRXNEInterrupt(pI2CHandle);
 			}
 		}
 	}
 }
-
 
 
 
