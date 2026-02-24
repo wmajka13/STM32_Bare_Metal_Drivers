@@ -99,6 +99,12 @@ typedef struct
 #define I2C_BUSY_IN_RX				1
 #define I2C_BUSY_IN_TX				2
 
+/*
+ * 	I2C application events macros
+ */
+#define I2C_EV_TX_CMPLT				0
+#define I2C_EV_RX_CMPLT				1
+#define I2C_EV_STOP					2
 
 
 /*****************************************************************************************
@@ -135,6 +141,9 @@ void I2C_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
 
 void I2C_EV_IRQHandling(I2C_Handle_t *pI2CHandle);
 void I2C_ER_IRQHandling(I2C_Handle_t *pI2CHandle);
+
+void I2C_CloseSendData(I2C_Handle_t *pI2CHandle);
+void I2C_CloseReceiveData(I2C_Handle_t *pI2CHandle);
 
 /*
  * 	Other peripheral control APIs
