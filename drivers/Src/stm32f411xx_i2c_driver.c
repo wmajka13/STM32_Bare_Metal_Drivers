@@ -581,6 +581,17 @@ uint8_t I2C_MasterReceiveDataIT(I2C_Handle_t *pI2CHandle,uint8_t *pRxBuffer, uin
 
 
 
+void I2C_SlaveSendData(I2C_RegDef_t *pI2C, uint8_t data)
+{
+	pI2C->DR = data;
+}
+
+uint8_t I2C_SlaveReceiveData(I2C_RegDef_t *pI2C)
+{
+	return (uint8_t)pI2C->DR;
+}
+
+
 void I2C_CloseSendData(I2C_Handle_t *pI2CHandle)
 {
 	//Disable the ITBUFEN Control bit
@@ -695,13 +706,22 @@ void I2C_EV_IRQHandling(I2C_Handle_t *pI2CHandle)
 	temp3 = pI2CHandle->pI2Cx->SR1 & ( 1 << I2C_SR1_TxE );
 	if (temp1 && temp2 && temp3)
 	{
+		//TxE flag is set
 		if (pI2CHandle->pI2Cx->SR2 & ( 1 << I2C_SR2_MSL )) // checking whether the device is a master!
 		{
-			//TxE flag is set
+			//master
 			// Here should be a transmission, we transmit when the i2c is busy in tx
 			if (pI2CHandle->TxRxState == I2C_BUSY_IN_TX)
 			{
 				I2C_MasterHandleTXEInterrupt(pI2CHandle);
+			}
+		} else
+		{
+			//slave
+			//checking wether the slave is a transmitter
+			if (pI2CHandle->pI2Cx->SR2 & ( 1 << I2C_SR2_TRA) )
+			{
+				I2C_ApplicationEventCallback(pI2CHandle, I2C_EV_DATA_REQ);
 			}
 		}
 	}
@@ -715,8 +735,15 @@ void I2C_EV_IRQHandling(I2C_Handle_t *pI2CHandle)
 		{
 			if (pI2CHandle->pI2Cx->SR2 & ( 1 << I2C_SR2_MSL )) // checking whether the device is a master!
 			{
-
+				//master
 				I2C_MasterHandleRXNEInterrupt(pI2CHandle);
+			} else
+			{
+				//slave
+				if (pI2CHandle->pI2Cx->SR2 & ( 1 << I2C_SR2_TRA) )
+				{
+					I2C_ApplicationEventCallback(pI2CHandle, I2C_EV_DATA_RCV);
+				}
 			}
 		}
 	}
