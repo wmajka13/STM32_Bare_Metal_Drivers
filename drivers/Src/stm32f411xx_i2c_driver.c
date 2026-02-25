@@ -753,8 +753,9 @@ void I2C_ER_IRQHandling(I2C_Handle_t *pI2CHandle)
 		//This is arbitration lost error
 
 		//Implement the code to clear the arbitration lost error flag
-
+		(pI2CHandle->pI2Cx->SR1) &= ~( 1 << I2C_SR1_ARLO );
 		//Implement the code to notify the application about the error
+	   I2C_ApplicationEventCallback(pI2CHandle,I2C_ERROR_ARLO);
 
 	}
 
@@ -766,8 +767,11 @@ void I2C_ER_IRQHandling(I2C_Handle_t *pI2CHandle)
 		//This is ACK failure error
 
 	    //Implement the code to clear the ACK failure error flag
+		(pI2CHandle->pI2Cx->SR1) &= ~( 1 << I2C_SR1_AF );
 
 		//Implement the code to notify the application about the error
+		   I2C_ApplicationEventCallback(pI2CHandle,I2C_ERROR_AF);
+
 	}
 
 /***********************Check for Overrun/underrun error************************************/
@@ -777,8 +781,11 @@ void I2C_ER_IRQHandling(I2C_Handle_t *pI2CHandle)
 		//This is Overrun/underrun
 
 	    //Implement the code to clear the Overrun/underrun error flag
+		(pI2CHandle->pI2Cx->SR1) &= ~( 1 << I2C_SR1_OVR );
 
 		//Implement the code to notify the application about the error
+	   I2C_ApplicationEventCallback(pI2CHandle,I2C_ERROR_OVR);
+
 	}
 
 /***********************Check for Time out error************************************/
@@ -788,8 +795,9 @@ void I2C_ER_IRQHandling(I2C_Handle_t *pI2CHandle)
 		//This is Time out error
 
 	    //Implement the code to clear the Time out error flag
-
+		(pI2CHandle->pI2Cx->SR1) &= ~( 1 << I2C_SR1_TIMEOUT );
 		//Implement the code to notify the application about the error
+		I2C_ApplicationEventCallback(pI2CHandle,I2C_ERROR_TIMEOUT);
 	}
 
 }
