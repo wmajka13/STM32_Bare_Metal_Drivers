@@ -10,10 +10,10 @@
 
 /*
  * SPI1, Alternate functionality mode 0 AF05
- * PA4 -> NSS, CH4
- * PA5 -> SCLK, CH1
- * PA6 -> MISO, CH3
- * PA7 -> MOSI, CH2
+ * PA4 -> NSS, 		Purple
+ * PA5 -> SCLK,		Yellow
+ * PA6 -> MISO,		Orange
+ * PA7 -> MOSI,		Green
  */
 
 //COMMAND CODES
@@ -41,7 +41,7 @@
 
 void delay(void)
 {
-	for(uint32_t i = 0 ; i< 500000/2 ; i ++);
+	for(volatile uint32_t i = 0 ; i< 500000/2 ; i ++);
 }
 
 
@@ -76,15 +76,15 @@ void SPI1_GPIOInits(void)
 
 void SPI1_Inits(void)
 {
-	SPI_Handle_t SPI1handle;
+	SPI_Handle_t SPI1handle = {0};
 
 	SPI1handle.pSPIx = SPI1;
 	SPI1handle.SPIConfig.SPI_BusConfig = SPI_BUS_CONFIG_FD;
 	SPI1handle.SPIConfig.SPI_DeviceMode = SPI_DEVICE_MODE_MASTER;
-	SPI1handle.SPIConfig.SPI_SclkSpeed = SPI_SCLK_SPEED_DIV64;
+	SPI1handle.SPIConfig.SPI_SclkSpeed = SPI_SCLK_SPEED_DIV128;
 	SPI1handle.SPIConfig.SPI_DFF = SPI_DFF_8BITS;
 	SPI1handle.SPIConfig.SPI_CPHA = SPI_CPHA_LOW;
-	SPI1handle.SPIConfig.SPI_CPOL = SPI_CPOL_HIGH;
+	SPI1handle.SPIConfig.SPI_CPOL = SPI_CPOL_LOW;
 	SPI1handle.SPIConfig.SPI_SSM = SPI_SSM_DI;
 
 	SPI_Init(&SPI1handle);
@@ -92,7 +92,7 @@ void SPI1_Inits(void)
 
 void GPIO_ButtonInit(void)
 {
-	GPIO_Handle_t GPIOBtn;								//Stowrzenie handla
+	GPIO_Handle_t GPIOBtn = {0};								//Stowrzenie handla
 
 	GPIOBtn.pGPIOx = GPIOC;
 	GPIOBtn.GPIO_PinConfig.GPIO_PinNumber = GPIO_PIN_NO_13;
@@ -148,8 +148,10 @@ int main(void){
 		uint8_t args[2];
 
 		SPI_SendData(SPI1, &commandcode, 1); //sending the command code
+
 		// we have to do dummy read in order to clear RXNE bit
 		SPI_ReceiveData(SPI1, &dummy_read, 1);
+
 
 		SPI_SendData(SPI1, &dummy_write, 1); //sending the dummy byte to push the answer from arudino
 		SPI_ReceiveData(SPI1, &ackbyte, 1);
@@ -163,36 +165,37 @@ int main(void){
 			SPI_SendData(SPI1, args, 2);
 		}
 
-		//2. CMD_SENSOR_READ
-		while (GPIO_ReadFromInputPin(GPIOC, GPIO_PIN_NO_13));
-		delay();
 
-		commandcode = COMMAND_SENSOR_READ;
-		uint8_t analog_value;
-
-		SPI_SendData(SPI1, &commandcode, 1); //sending the command code
-		// we have to do dummy read in order to clear RXNE bit
-		SPI_ReceiveData(SPI1, &dummy_read, 1);
-
-		SPI_SendData(SPI1, &dummy_write, 1); //sending the dummy byte to push the answer from arudino
-		SPI_ReceiveData(SPI1, &ackbyte, 1);
-
-		if ( SPI_VerifyResponse(ackbyte) )
-		{
-			//Send arguments
-			args[0] = ANALOG_PIN0;
-
-			SPI_SendData(SPI1, args, 1);
-			SPI_ReceiveData(SPI1, &dummy_read, 1);
-
-			//delay to give slave time to read ADC
-			delay();
-
-			SPI_SendData(SPI1, &dummy_write, 1);
-			SPI_ReceiveData(SPI1, &analog_value, 1);
-		}
-
-
+//		//2. CMD_SENSOR_READ
+//		while (GPIO_ReadFromInputPin(GPIOC, GPIO_PIN_NO_13));
+//		delay();
+//
+//		commandcode = COMMAND_SENSOR_READ;
+//		uint8_t analog_value;
+//
+//		SPI_SendData(SPI1, &commandcode, 1); //sending the command code
+//		// we have to do dummy read in order to clear RXNE bit
+//		SPI_ReceiveData(SPI1, &dummy_read, 1);
+//
+//		SPI_SendData(SPI1, &dummy_write, 1); //sending the dummy byte to push the answer from arudino
+//		SPI_ReceiveData(SPI1, &ackbyte, 1);
+//
+//		if ( SPI_VerifyResponse(ackbyte) )
+//		{
+//			//Send arguments
+//			args[0] = ANALOG_PIN0;
+//
+//			SPI_SendData(SPI1, args, 1);
+//			SPI_ReceiveData(SPI1, &dummy_read, 1);
+//
+//			//delay to give slave time to read ADC
+//			delay();
+//
+//			SPI_SendData(SPI1, &dummy_write, 1);
+//			SPI_ReceiveData(SPI1, &analog_value, 1);
+//		}
+//
+//
 		while ( SPI_GetFlagStatus(SPI1, SPI_BSY_FLAG) );
 
 		SPI_PeripheralControl(SPI1, DISABLE);
