@@ -13,22 +13,13 @@ static void SPI_OVR_ERR_Interrupt_Handle(SPI_Handle_t *pSPIHandle);
 
 
 
-/*
- *  Peripheral Clock setup
- */
+/**************************************		Peripheral Clock setup		**************************************/
 
-/***********************************************************
- * @fn			- SPI_PeriClockControl
+/**
+ * Enables/Disables the peripheral clock for SPIx
  *
- * @brief 		- Enables or disables clock on GPIO's bus
- *
- * @param[pSPIx]		- Pointer to structure defining SPI's registers (it is also a base address of SPI)
- * @param[EnorDi]		- ENABLE or DISABLE macros
- *
- * @return		- None
- *
- * @note		- None
- *
+ * @param pSPIx 	SPI register structure.
+ * @param EnOrDi    ENABLE or DISABLE.
  */
 void SPI_PeriClockControl(SPI_RegDef_t *pSPIx, uint8_t EnorDI)
 {
@@ -74,21 +65,13 @@ void SPI_PeriClockControl(SPI_RegDef_t *pSPIx, uint8_t EnorDI)
 }
 
 
-/*
- * 	Init and De_init
- */
 
-/***********************************************************
- * @fn			- SPI_Init
+/**************************************		Init and De_init		**************************************/
+
+/**
+ * Initializes the SPIx - sets different registers according to setting in handle, enables peripheral clock
  *
- * @brief 		- Initializes SPI
- *
- * @param[pSPIHandle]		- Pointer to structure defining SPI's handle
- *
- * @return		- None
- *
- * @note		- None
- *
+ * @param pSPIHandle Handle for SPIx.
  */
 void SPI_Init(SPI_Handle_t *pSPIHandle)
 {
@@ -132,17 +115,10 @@ void SPI_Init(SPI_Handle_t *pSPIHandle)
 	pSPIHandle->pSPIx->CR1 = tempreg;
 }
 
-/***********************************************************
- * @fn			- SPI_DeInit
+/**
+ * Deinitializes the SPIx using macros defined in MCU header file.
  *
- * @brief 		- Deinitializes SPI
- *
- * @param[pSPIx]		- Pointer to structure defining SPI's registers
- *
- * @return		- None
- *
- * @note		- None
- *
+ * @param pSPIHandle Handle for SPIx
  */
 void SPI_DeInit(SPI_RegDef_t *pSPIx)
 {
@@ -166,33 +142,15 @@ void SPI_DeInit(SPI_RegDef_t *pSPIx)
 
 
 
-uint8_t SPI_GetFlagStatus(SPI_RegDef_t *pSPIx, uint32_t FlagName)
-{
-	if(pSPIx->SR & FlagName)
-	{
-		return FLAG_SET;
-	}
-	return FLAG_RESET;
-}
+/**************************************		Data send and receive		**************************************/
 
-
-/*
- *  Data send and receive
- */
-
-/***********************************************************
- * @fn			- SPI_SendData
+/**
+ * Sends data using SPIx in blocking mode (pooling)
+ * @note When Length>1 then has to be used in loop in order to receive 1byte of data for 1byte of data transmitted
  *
- * @brief 		- Allows to send data
- *
- * @param[pSPIx]			- Pointer to structure defining SPI's registers
- * @param[pTxBuffer]		- pointer to a buffer that holds message to be transmitted
- * @param[Len]				- Length of this message in bytes
- *
- * @return		- None
- *
- * @note		- This is a blocking call - 2 while functions.
- *
+ * @param pSPIx 		SPIx register structure.
+ * @param pTxBuffer    	Pointer to data
+ * @param Len    		Length of data
  */
 void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t Len)
 {
@@ -209,7 +167,7 @@ void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t Len)
 			pSPIx->DR = *((uint16_t*)pTxBuffer); //Trzeba ztypecastowac żeby to był pointer pokazujący na 2bajty, wtedy dereferncja wyciągnie 2 bajty
 			Len--;
 			Len--;
-			(uint16_t*)pTxBuffer++;
+			(uint16_t*)pTxBuffer++;	//TODO: TEST IF 16BIT COMMUNICATION WORKS!
 		} else
 		{
 			//8bit DFF
@@ -220,19 +178,13 @@ void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t Len)
 	}
 }
 
-/***********************************************************
- * @fn			- SPI_ReceiveData
+/**
+ * Receives data using SPIx in blocking mode (pooling)
+ * @note When Length>1 then has to be used in loop in order to receive 1byte of data for 1byte of data transmitted
  *
- * @brief 		- allows to receive data through SPI
- *
- * @param[pSPIx]		- Pointer to structure defining SPI's registers
- * @param[pRxBuffer]	- Pointer to a buffer in which received data will be written
- * @param[Len]			- length of received data in bytes
- *
- * @return		- None
- *
- * @note		- None
- *
+ * @param pSPIx 		SPIx register structure.
+ * @param pRxBuffer    	Pointer to buffer where received data will be written
+ * @param Len    		Length of data
  */
 void SPI_ReceiveData(SPI_RegDef_t *pSPIx, uint8_t *pRxBuffer, uint32_t Len)
 {
@@ -257,22 +209,14 @@ void SPI_ReceiveData(SPI_RegDef_t *pSPIx, uint8_t *pRxBuffer, uint32_t Len)
 }
 
 
-/*
- * 	IRQ Configuration and ISR handling
- */
 
-/***********************************************************
- * @fn			- SPI_IRQInterruptConfig
+/**************************************		IRQ Configuration and ISR handling		**************************************/
+
+/**
+ * Enables or disables the IRQs for a given SPIx
  *
- * @brief 		- Enables/Disables ability to use Interrupt from SPI
- *
- * @param[IRQNumber]		- Number of interrupt
- * @param[EnorDI]			- Enable or Disable macro
- *
- * @return		- none
- *
- * @note		- none
- *
+ * @param IRQNumber 	Macro of an IRQNumber for a given SPIx - specified in MCU specific header file
+ * @param EnorDI    	ENABLE or DISABLE.
  */
 void SPI_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDI)
 {
@@ -611,6 +555,14 @@ __weak void SPI_ApplicationEventCallback(SPI_Handle_t *pSPIHandle, uint8_t AppEv
 
 }
 
+uint8_t SPI_GetFlagStatus(SPI_RegDef_t *pSPIx, uint32_t FlagName)
+{
+	if(pSPIx->SR & FlagName)
+	{
+		return FLAG_SET;
+	}
+	return FLAG_RESET;
+}
 
 
 
