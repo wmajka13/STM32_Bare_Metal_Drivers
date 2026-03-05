@@ -123,8 +123,10 @@ void SPI_Init(SPI_Handle_t *pSPIHandle)
 	pSPIHandle->pSPIx->CR1 = tempreg;
 }
 
+
 /**
- * Deinitializes the SPIx using macros defined in MCU header file.
+ * Deinitializes the SPIx using macros defined in MCU header file. Setting registers back to theirs original state,
+ * done using RCC_AHB1RSTR (example)
  *
  * @param pSPIHandle Handle for SPIx
  */
@@ -151,6 +153,7 @@ void SPI_DeInit(SPI_RegDef_t *pSPIx)
 
 
 /**************************************		Data send and receive		**************************************/
+
 
 /**
  * Sends data using SPIx in blocking mode (pooling)
@@ -186,6 +189,7 @@ void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t Len)
 	}
 }
 
+
 /**
  * Receives data using SPIx in blocking mode (pooling)
  * @note When Length>1 then has to be used in loop in order to receive 1byte of data for 1byte of data transmitted
@@ -216,13 +220,18 @@ void SPI_ReceiveData(SPI_RegDef_t *pSPIx, uint8_t *pRxBuffer, uint32_t Len)
 	}
 }
 
+
+
+/**************************************		Data send and receive with interrrupts		**************************************/
+
 /**
- * Receives data using SPIx in blocking mode (pooling)
- * @note When Length>1 then has to be used in loop in order to receive 1byte of data for 1byte of data transmitted
+ * Starts sending data through SPIx using interrupts - function bascially just notes the information about transmission in tha Handle.
+ * The sending of data itself is done in IRQ_handler
+ * @note When Length>1 then has to be used in loop in order to receive 1byte of data for 1byte of data transmitted TODO: Repair this
  *
- * @param pSPIx 		SPIx register structure.
- * @param pRxBuffer    	Pointer to buffer where received data will be written
- * @param Len    		Length of data
+ * @param pSPIHandle 		SPIx handle structur
+ * @param pRxBuffer  	  	Pointer to data to be transmitted
+ * @param Len    			Length of data
  */
 uint8_t SPI_SendDataIT(SPI_Handle_t *pSPIHandle, uint8_t *pTxBuffer, uint32_t Len)
 {
@@ -243,9 +252,11 @@ uint8_t SPI_SendDataIT(SPI_Handle_t *pSPIHandle, uint8_t *pTxBuffer, uint32_t Le
 	return state;
 }
 
+
 /**
- * Receives data using SPIx in blocking mode (pooling)
- * @note When Length>1 then has to be used in loop in order to receive 1byte of data for 1byte of data transmitted
+ * Receives data using SPIx in interrupt mode - function notes the information about transmission in the handle.
+ * Receving of data is done in IRQ_handler
+ * @note When Length>1 then has to be used in loop in order to receive 1byte of data for 1byte of data transmitted TODO: Repair this
  *
  * @param pSPIx 		SPIx register structure.
  * @param pRxBuffer    	Pointer to buffer where received data will be written
@@ -321,6 +332,7 @@ void SPI_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDI)
 	}
 }
 
+
 /**
  * Enables or disables the IRQs for a given SPIx
  *
@@ -336,6 +348,7 @@ void SPI_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority)
 	uint8_t shift_amount = ( 8 * iprx_byte ) + (8 - NO_PR_BITS_IMPLEMENTED);
 	*(NVIC_PR_BASE_ADDR + iprx) |= ( IRQPriority << shift_amount );
 }
+
 
 
 /**
@@ -379,6 +392,7 @@ void SPI_IRQHandling(SPI_Handle_t *pSPIHandle)
 
 }
 
+
 /**
  * Function handles the interrupt form TxE bit - it writes data into the DR register.
  * @note	It is basically not functional due to transmitting-receiving, function doesnt recevie data
@@ -411,6 +425,7 @@ static inline void SPI_TXE_Interrupt_Handle(SPI_Handle_t *pSPIHandle)
 	}
 }
 
+
 /**
  * Function handles the interrupt form RxNE bit - it reads data from the DR register.
  * @note	It is basically not functional due to transmitting-receiving, function doesnt trasnmit data
@@ -439,6 +454,7 @@ static inline void SPI_RXE_Interrupt_Handle(SPI_Handle_t *pSPIHandle)
 	}
 }
 
+
 /**
  * Function handles the interrupt form OVR error - clears the bit and calls application
  * @note	We dont set ERRIE bit anywehere
@@ -464,11 +480,11 @@ static inline void SPI_OVR_ERR_Interrupt_Handle(SPI_Handle_t *pSPIHandle)
 
 
 
-/**************************************		Other peripheral control APIs		**************************************/
-
+/**************************************		Setting and clearing flags		**************************************/
 
 /**
- * Enables the SPIx - have to be enabled! For NSS settings (SSM=0, SSOE=1) works as NSS controller (SPE=1) pulls down NSS.
+ * Enables the SPIx - have to be enabled!
+ * @note 				For NSS settings (SSM=0, SSOE=1) works as NSS controller (SPE=1) pulls down NSS.
  *
  * @param pSPIx 		Handle for SPIx registers
  * @param EnOrDi	 	Enable or Disable
@@ -484,6 +500,7 @@ void SPI_PeripheralControl(SPI_RegDef_t *pSPIx, uint8_t EnOrDi)
 	}
 
 }
+
 
 /**
  * Works when SSM=1 then value of SSI is set as NSS of device using SPIx - has to be set to 1 otherwise allows multimaster mode
@@ -523,6 +540,11 @@ void SPI_SSOEConfig(SPI_RegDef_t *pSPIx, uint8_t EnOrDi)
 }
 
 
+/**
+ * Clears the OVR flag by reading DR and SR
+ *
+ * @param pSPIx 		Handle to SPIx registers
+ */
 void SPI_ClearOVRFlag(SPI_RegDef_t *pSPIx)
 {
 	uint8_t temp;
@@ -531,6 +553,31 @@ void SPI_ClearOVRFlag(SPI_RegDef_t *pSPIx)
 	(void)temp;
 }
 
+
+/**
+ * Allows to check the status of given flag
+ *
+ * @param pSPIx 		Handle for SPIx registers
+ * @param FlagName	 	Name of the flag (defined as macros)
+ */
+uint8_t SPI_GetFlagStatus(SPI_RegDef_t *pSPIx, uint32_t FlagName)
+{
+	if(pSPIx->SR & FlagName)
+	{
+		return FLAG_SET;
+	}
+	return FLAG_RESET;
+}
+
+
+
+/**************************************		Other peripheral control APIs		**************************************/
+
+/**
+ * Closes the transmission - clear the TxEIE bit, resets buffer and length, sets SPI_READY
+ *
+ * @param pSPIHandle 		Handle for SPIx
+ */
 void SPI_CloseTransmission(SPI_Handle_t *pSPIHandle)
 {
 	pSPIHandle->pSPIx->CR2 &= ~( 1 << SPI_CR2_TXEIE );
@@ -539,6 +586,12 @@ void SPI_CloseTransmission(SPI_Handle_t *pSPIHandle)
 	pSPIHandle->TxState = SPI_READY;
 }
 
+
+/**
+ * Closes the reception - clear the RxNEIE bit, resets buffer and length, sets SPI_READY
+ *
+ * @param pSPIHandle 		Handle for SPIx
+ */
 void SPI_CloseReception(SPI_Handle_t *pSPIHandle)
 {
 	pSPIHandle->pSPIx->CR2 &= ~( 1 << SPI_CR2_RXNEIE );
@@ -549,27 +602,20 @@ void SPI_CloseReception(SPI_Handle_t *pSPIHandle)
 
 
 
-/*
- * 	Handling helper functions
+/**************************************		Application callback		**************************************/
+
+/**
+ * Function is called after handeled interrupt - allows user to do something connected to the interrupt - for example resolve OVR error.
+ * @note 	__weak = __attribute__((weak))
+ *
+ * @param pSPIHandle 		Handle for SPIx
+ * @param AppEv 			Event in application (defined macro)
  */
-
-
-
-// __weak = __attribute__((weak))
 __weak void SPI_ApplicationEventCallback(SPI_Handle_t *pSPIHandle, uint8_t AppEv)
 {
-	//weak implementation that can be ovveride by application
-
+	//weak implementation that can be overide by application
 }
 
-uint8_t SPI_GetFlagStatus(SPI_RegDef_t *pSPIx, uint32_t FlagName)
-{
-	if(pSPIx->SR & FlagName)
-	{
-		return FLAG_SET;
-	}
-	return FLAG_RESET;
-}
 
 
 
