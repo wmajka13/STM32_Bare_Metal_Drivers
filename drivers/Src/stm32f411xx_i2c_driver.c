@@ -82,51 +82,6 @@ static inline void I2C_ClearADDRFlag(I2C_Handle_t *pI2CHandle)
 	}
 }
 
-static inline void I2C_MasterHandleTXEInterrupt(I2C_Handle_t *pI2CHandle)
-{
-	if (pI2CHandle->TxLen > 0)
-	{
-		pI2CHandle->pI2Cx->DR = *(pI2CHandle->pTxBuffer);
-		pI2CHandle->TxLen--;
-		pI2CHandle->pTxBuffer++;
-	}
-}
-
-
-static inline void I2C_MasterHandleRXNEInterrupt(I2C_Handle_t *pI2CHandle)
-{
-	//data reception
-	if (pI2CHandle->RxSize == 1)
-	{
-		*pI2CHandle->pRxBuffer = pI2CHandle->pI2Cx->DR;
-		pI2CHandle->RxLen--;
-	}
-
-	if (pI2CHandle->RxSize > 1)
-	{
-		if (pI2CHandle->RxLen == 2)
-		{
-			I2C_ManageAcking(pI2CHandle->pI2Cx, DISABLE); //clear the ack
-		}
-		//Read the DR
-		*pI2CHandle->pRxBuffer = pI2CHandle->pI2Cx->DR;
-		pI2CHandle->RxLen--;
-		pI2CHandle->pRxBuffer++;
-	}
-
-	if (pI2CHandle->RxLen == 0)
-	{
-		//close the i2c data reception and notify the app
-		if (pI2CHandle->Sr == I2C_DISABLE_SR) //Reapted start disabled
-		{
-			I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
-		}
-		I2C_CloseReceiveData(pI2CHandle);
-		I2C_ApplicationEventCallback(pI2CHandle, I2C_EV_RX_CMPLT); //TODO
-	}
-}
-
-
 
 /**************************************		Peripheral Clock setup		**************************************/
 
@@ -257,8 +212,18 @@ void I2C_DeInit(I2C_RegDef_t *pI2Cx)
 }
 
 
+
 /**************************************		Data send and receive		**************************************/
 
+/**
+ * Master sends data using I2Cx in blocking mode (pooling), goes through transfer sequence diagram for master transmitter
+ * @note 	(Reference manual - Figure 164. Transfer sequence diagram for controller transmitter)
+ *
+ * @param pI2CHandle 		I2Cx handle structure.
+ * @param pTxBuffer  	  	Pointer to data
+ * @param Len    			Length of data
+ * @param SlaveAddr			Address of slave
+ */
 void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint32_t Len, uint8_t SlaveAddr)
 {
 	//1. Generate the START condition
@@ -300,6 +265,15 @@ void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint32_t L
 }
 
 
+/**
+ * Master receives data using I2Cx in blocking mode (pooling), goes through receive sequence diagram for master receiver
+ * @note 	(Reference manual - Figure 165. Transfer sequence diagram for controller receiver)
+ *
+ * @param pI2CHandle 		I2Cx handle structure.
+ * @param pRxBuffer  	  	Pointer to array where data will be stored
+ * @param Len    			Length of data
+ * @param SlaveAddr			Address of slave
+ */
 void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t Len, uint8_t SlaveAddr)
 {
     //1. Generate the START condition
@@ -708,6 +682,50 @@ void I2C_ER_IRQHandling(I2C_Handle_t *pI2CHandle)
 	}
 
 }
+
+static inline void I2C_MasterHandleTXEInterrupt(I2C_Handle_t *pI2CHandle)
+{
+	if (pI2CHandle->TxLen > 0)
+	{
+		pI2CHandle->pI2Cx->DR = *(pI2CHandle->pTxBuffer);
+		pI2CHandle->TxLen--;
+		pI2CHandle->pTxBuffer++;
+	}
+}
+
+static inline void I2C_MasterHandleRXNEInterrupt(I2C_Handle_t *pI2CHandle)
+{
+	//data reception
+	if (pI2CHandle->RxSize == 1)
+	{
+		*pI2CHandle->pRxBuffer = pI2CHandle->pI2Cx->DR;
+		pI2CHandle->RxLen--;
+	}
+
+	if (pI2CHandle->RxSize > 1)
+	{
+		if (pI2CHandle->RxLen == 2)
+		{
+			I2C_ManageAcking(pI2CHandle->pI2Cx, DISABLE); //clear the ack
+		}
+		//Read the DR
+		*pI2CHandle->pRxBuffer = pI2CHandle->pI2Cx->DR;
+		pI2CHandle->RxLen--;
+		pI2CHandle->pRxBuffer++;
+	}
+
+	if (pI2CHandle->RxLen == 0)
+	{
+		//close the i2c data reception and notify the app
+		if (pI2CHandle->Sr == I2C_DISABLE_SR) //Reapted start disabled
+		{
+			I2C_GenerateStopCondition(pI2CHandle->pI2Cx);
+		}
+		I2C_CloseReceiveData(pI2CHandle);
+		I2C_ApplicationEventCallback(pI2CHandle, I2C_EV_RX_CMPLT); //TODO
+	}
+}
+
 
 
 /**************************************		Setting, reading and clearing bits		**************************************/
