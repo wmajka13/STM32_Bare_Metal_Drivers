@@ -6,7 +6,7 @@
  */
 
 
-#include "stm32f411_i2c_driver.h"
+#include <stm32f411xx_i2c_driver.h>
 
 #define I2C_READ			1
 #define I2C_WRITE			0
@@ -14,7 +14,11 @@
 uint16_t AHB_PreScaler[8] = {2, 4, 8, 16, 64, 128, 256, 512};
 uint8_t APB1_PreScaler[4] = {2, 4, 8, 16};
 
-//Declarations
+
+/*****************************************************************************************************************/
+/**************************************		Private function prototypes		**************************************/
+/*****************************************************************************************************************/
+
 static inline void I2C_GenerateStartCondition(I2C_RegDef_t *pI2Cx);
 static inline void I2C_ExecuteAddressPhase(I2C_RegDef_t *pI2Cx, uint8_t SlaveAddr, uint8_t ReadorWrite);
 static inline void I2C_ClearADDRFlag(I2C_Handle_t *pI2CHandle);
@@ -22,9 +26,11 @@ static inline void I2C_GenerateStopCondition(I2C_RegDef_t *pI2Cx);
 static inline void I2C_MasterHandleTXEInterrupt(I2C_Handle_t *pI2CHandle);
 static inline void I2C_MasterHandleRXNEInterrupt(I2C_Handle_t *pI2CHandle);
 
-//Definitions
-static inline void I2C_GenerateStartCondition(I2C_RegDef_t *pI2Cx) { pI2Cx->CR1 |= ( 1 << I2C_CR1_START ); }
-static inline void I2C_GenerateStopCondition(I2C_RegDef_t *pI2Cx) { pI2Cx->CR1 |= ( 1 << I2C_CR1_STOP ); }
+
+/*****************************************************************************************************************/
+/**************************************		Global API implementations		**************************************/
+/*****************************************************************************************************************/
+
 
 static inline void I2C_ExecuteAddressPhase(I2C_RegDef_t *pI2Cx, uint8_t SlaveAddr, uint8_t ReadorWrite)
 {
@@ -120,11 +126,16 @@ static inline void I2C_MasterHandleRXNEInterrupt(I2C_Handle_t *pI2CHandle)
 	}
 }
 
-/*
- *  Peripheral Clock setup
+
+
+/**************************************		Peripheral Clock setup		**************************************/
+
+/**
+ * Enables/Disables the peripheral clock for I2Cx
+ *
+ * @param pSPIx 	SPI register structure.
+ * @param EnOrDi    ENABLE or DISABLE.
  */
-
-
 void I2C_PeriClockControl(I2C_RegDef_t *pI2Cx, uint8_t EnorDI)
 {
 	if (EnorDI == ENABLE)
@@ -155,8 +166,13 @@ void I2C_PeriClockControl(I2C_RegDef_t *pI2Cx, uint8_t EnorDI)
 }
 
 
-/*
- * 	Init and De_init
+
+/**************************************		Init and De_init		**************************************/
+
+/**
+ * Initializes the I2Cx - sets different registers according to setting in handle
+ *
+ * @param pI2CHandle Handle for I2Cx.
  */
 void I2C_Init(I2C_Handle_t *pI2CHandle)
 {
@@ -220,7 +236,13 @@ void I2C_Init(I2C_Handle_t *pI2CHandle)
 }
 
 
-void I2C_DeInit(I2C_RegDef_t *pI2Cx) /* Setting registers back to theirs original state, done using RCC_AHB1RSTR (example)*/
+/**
+ * Deinitializes the I2Cx using macros defined in MCU header file. Setting registers back to theirs original state,
+ * done using RCC_AHB1RSTR (example)
+ *
+ * @param pI2CHandle Handle for I2Cx
+ */
+void I2C_DeInit(I2C_RegDef_t *pI2Cx)
 {
 	if(pI2Cx == I2C1)
 	{
@@ -233,6 +255,9 @@ void I2C_DeInit(I2C_RegDef_t *pI2Cx) /* Setting registers back to theirs origina
 		I2C3_REG_RESET();
 	}
 }
+
+
+/**************************************		Data send and receive		**************************************/
 
 void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint32_t Len, uint8_t SlaveAddr)
 {
@@ -345,177 +370,20 @@ void I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle, uint8_t *pRxBuffer, uint8_t
 }
 
 
-
-/*
- * 	IRQ Configuration and ISR handling
- */
-
-/***********************************************************
- * @fn			- I2C_IRQInterruptConfig
- *
- * @brief 		- Enables/Disables ability to use Interrupt from I2C
- *
- * @param[IRQNumber]		- Number of interrupt
- * @param[EnorDI]			- Enable or Disable macro
- *
- * @return		- none
- *
- * @note		- none
- *
- */
-void I2C_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDI)
+void I2C_SlaveSendData(I2C_RegDef_t *pI2C, uint8_t data)
 {
-	if(EnorDI == ENABLE)
-	{
-		if(IRQNumber <= 31)
-		{
-			//program ISER0 Reg
-			*NVIC_ISER0 |= ( 1 << IRQNumber );
-
-		} else if(IRQNumber > 31 && IRQNumber < 64)
-		{
-			//program ISER1 Reg
-			*NVIC_ISER1 |= ( 1 << (IRQNumber % 32) );
-
-		}
-		else if(IRQNumber >= 64 && IRQNumber <= 96)
-		{
-			//program ISER2 reg
-			*NVIC_ISER2 |= ( 1 << (IRQNumber % 64) );
-		}
-	} else
-	{
-		if(IRQNumber <= 31)
-		{
-			//program ICER0 Reg
-			*NVIC_ICER0 |= ( 1 << IRQNumber );
-
-		} else if(IRQNumber > 31 && IRQNumber < 64)
-		{
-			//program ICER1 Reg
-			*NVIC_ICER1 |= ( 1 << (IRQNumber % 32) );
-
-		}
-		else if(IRQNumber >= 64 && IRQNumber <= 96)
-		{
-			//program ICER2 reg
-			*NVIC_ICER2 |= ( 1 << (IRQNumber % 64) );
-		}
-	}
-}
-
-/***********************************************************
- * @fn			- GPIO_IRQPriorityConfig
- *
- * @brief 		- allows to set a interrupt priority
- *
- * @param[IRQNumber]		- Number of interrupt
- * @param[IRQPriority]		- Priority of interrupt
- *
- * @return		- none
- *
- * @note		- none
- *
- */
-void I2C_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority)
-{
-	// 1. finding out IPR reg
-	uint32_t iprx = IRQNumber / 4;
-	uint8_t iprx_byte = IRQNumber % 4;
-
-	uint8_t shift_amount = ( 8 * iprx_byte ) + (8 - NO_PR_BITS_IMPLEMENTED);
-	*(NVIC_PR_BASE_ADDR + iprx) |= ( IRQPriority << shift_amount );
+	pI2C->DR = data;
 }
 
 
-/*
- * 	Other peripheral control APIs
- */
-void I2C_PeripheralControl(I2C_RegDef_t *pI2Cx, uint8_t EnOrDi)
+uint8_t I2C_SlaveReceiveData(I2C_RegDef_t *pI2C)
 {
-	if(EnOrDi == ENABLE)
-	{
-		pI2Cx->CR1 |= (1 << I2C_CR1_PE);
-	} else
-	{
-		pI2Cx->CR1 &= ~(1 << I2C_CR1_PE);
-	}
-
-}
-
-uint32_t RCC_GetPullOutputClock(void)
-{
-	return 0;
+	return (uint8_t)pI2C->DR;
 }
 
 
-//returns frequency of PLCK in Mhz
-uint32_t RCC_GetPCLK1Value(void)
-{
-	uint32_t pclk1, SystemClk;
-	uint8_t clksrc, temp, ahbp, apb1p;
 
-	clksrc = ( (RCC->CFGR >> 2) & 0x3); //moves bit 3 and 2 at the beggings and masks
-
-	if (clksrc == 0)
-	{
-		//sysclk = HSI
-		SystemClk = 16e6; //16Mhz
-
-	} else if (clksrc == 1)
-	{
-		//HSE
-		SystemClk = 8e6; //8Mhz
-	} else if (clksrc == 2)
-	{
-		//PLL - another func to calculate this needed - for now not implementend TODO
-		SystemClk = RCC_GetPullOutputClock();
-	}
-
-	temp = ( (RCC->CFGR >> 4) & 0xF); //value of ahb prescaler in code
-	if (temp < 8)
-	{
-		ahbp = 1;
-	} else
-	{
-		ahbp = AHB_PreScaler[temp-8]; //We have an array that holds possible prescalers: for prescaler=2 code is 8, 4->9, 8->10
-	}
-
-	temp = ( (RCC->CFGR >> 10) & 0x7); //value of ahb prescaler in code
-	if (temp < 4)
-	{
-		apb1p = 1;
-	} else
-	{
-		apb1p = APB1_PreScaler[temp-4]; //We have an array that holds possible prescalers: for prescaler=2 code is 8, 4->9, 8->10
-	}
-
-	pclk1 = (SystemClk / ahbp) / apb1p;
-
-	return pclk1;
-}
-
-
-uint8_t I2C_GetFlagStatus(I2C_RegDef_t *pI2Cx, uint32_t FlagName)
-{
-	if(pI2Cx->SR1 & FlagName)
-	{
-		return FLAG_SET;
-	}
-	return FLAG_RESET;
-}
-
-void I2C_ManageAcking(I2C_RegDef_t *pI2Cx, uint8_t EnOrDi)
-{
-	if (EnOrDi == I2C_ACK_ENABLE)
-	{
-		pI2Cx->CR1 |= ( 1 << I2C_CR1_ACK );
-	} else
-	{
-		pI2Cx->CR1 &= ~( 1 << I2C_CR1_ACK );
-	}
-}
-
+/**************************************		Data send and receive with interrupts		**************************************/
 
 uint8_t  I2C_MasterSendDataIT(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint32_t Len, uint8_t SlaveAddr, uint8_t Sr)
 {
@@ -581,43 +449,57 @@ uint8_t I2C_MasterReceiveDataIT(I2C_Handle_t *pI2CHandle,uint8_t *pRxBuffer, uin
 
 
 
-void I2C_SlaveSendData(I2C_RegDef_t *pI2C, uint8_t data)
+/**************************************		IRQ Configuration and ISR handling		**************************************/
+
+void I2C_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDI)
 {
-	pI2C->DR = data;
-}
-
-uint8_t I2C_SlaveReceiveData(I2C_RegDef_t *pI2C)
-{
-	return (uint8_t)pI2C->DR;
-}
-
-
-void I2C_CloseSendData(I2C_Handle_t *pI2CHandle)
-{
-	//Disable the ITBUFEN Control bit
-	pI2CHandle->pI2Cx->CR2 &= ~( 1 << I2C_CR2_ITBUFEN);
-	//Disable the ITEVEN control bit
-	pI2CHandle->pI2Cx->CR2 &= ~( 1 << I2C_CR2_ITEVTEN);
-
-	pI2CHandle->TxRxState = I2C_READY;
-	pI2CHandle->pTxBuffer = NULL;
-}
-
-void I2C_CloseReceiveData(I2C_Handle_t *pI2CHandle)
-{
-	//Disable the ITBUFEN Control bit
-	pI2CHandle->pI2Cx->CR2 &= ~( 1 << I2C_CR2_ITBUFEN);
-	//Disable the ITEVEN control bit
-	pI2CHandle->pI2Cx->CR2 &= ~( 1 << I2C_CR2_ITEVTEN);
-
-	pI2CHandle->TxRxState = I2C_READY;
-	pI2CHandle->pRxBuffer = NULL;
-	pI2CHandle->RxLen = 0;
-	pI2CHandle->RxSize = 0;
-	if (pI2CHandle->I2C_Config.I2C_ACKControl == I2C_ACK_ENABLE)
+	if(EnorDI == ENABLE)
 	{
-		I2C_ManageAcking(pI2CHandle->pI2Cx, ENABLE);
+		if(IRQNumber <= 31)
+		{
+			//program ISER0 Reg
+			*NVIC_ISER0 |= ( 1 << IRQNumber );
+
+		} else if(IRQNumber > 31 && IRQNumber < 64)
+		{
+			//program ISER1 Reg
+			*NVIC_ISER1 |= ( 1 << (IRQNumber % 32) );
+
+		}
+		else if(IRQNumber >= 64 && IRQNumber <= 96)
+		{
+			//program ISER2 reg
+			*NVIC_ISER2 |= ( 1 << (IRQNumber % 64) );
+		}
+	} else
+	{
+		if(IRQNumber <= 31)
+		{
+			//program ICER0 Reg
+			*NVIC_ICER0 |= ( 1 << IRQNumber );
+
+		} else if(IRQNumber > 31 && IRQNumber < 64)
+		{
+			//program ICER1 Reg
+			*NVIC_ICER1 |= ( 1 << (IRQNumber % 32) );
+
+		}
+		else if(IRQNumber >= 64 && IRQNumber <= 96)
+		{
+			//program ICER2 reg
+			*NVIC_ICER2 |= ( 1 << (IRQNumber % 64) );
+		}
 	}
+}
+
+void I2C_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority)
+{
+	// 1. finding out IPR reg
+	uint32_t iprx = IRQNumber / 4;
+	uint8_t iprx_byte = IRQNumber % 4;
+
+	uint8_t shift_amount = ( 8 * iprx_byte ) + (8 - NO_PR_BITS_IMPLEMENTED);
+	*(NVIC_PR_BASE_ADDR + iprx) |= ( IRQPriority << shift_amount );
 }
 
 void I2C_EV_IRQHandling(I2C_Handle_t *pI2CHandle)
@@ -749,8 +631,6 @@ void I2C_EV_IRQHandling(I2C_Handle_t *pI2CHandle)
 	}
 }
 
-
-
 void I2C_ER_IRQHandling(I2C_Handle_t *pI2CHandle)
 {
 
@@ -828,3 +708,130 @@ void I2C_ER_IRQHandling(I2C_Handle_t *pI2CHandle)
 	}
 
 }
+
+
+/**************************************		Setting, reading and clearing bits		**************************************/
+
+uint8_t I2C_GetFlagStatus(I2C_RegDef_t *pI2Cx, uint32_t FlagName)
+{
+	if(pI2Cx->SR1 & FlagName)
+	{
+		return FLAG_SET;
+	}
+	return FLAG_RESET;
+}
+
+void I2C_PeripheralControl(I2C_RegDef_t *pI2Cx, uint8_t EnOrDi)
+{
+	if(EnOrDi == ENABLE)
+	{
+		pI2Cx->CR1 |= (1 << I2C_CR1_PE);
+	} else
+	{
+		pI2Cx->CR1 &= ~(1 << I2C_CR1_PE);
+	}
+
+}
+
+void I2C_ManageAcking(I2C_RegDef_t *pI2Cx, uint8_t EnOrDi)
+{
+	if (EnOrDi == I2C_ACK_ENABLE)
+	{
+		pI2Cx->CR1 |= ( 1 << I2C_CR1_ACK );
+	} else
+	{
+		pI2Cx->CR1 &= ~( 1 << I2C_CR1_ACK );
+	}
+}
+
+static inline void I2C_GenerateStartCondition(I2C_RegDef_t *pI2Cx)
+{
+	pI2Cx->CR1 |= ( 1 << I2C_CR1_START );
+}
+
+static inline void I2C_GenerateStopCondition(I2C_RegDef_t *pI2Cx)
+{
+	pI2Cx->CR1 |= ( 1 << I2C_CR1_STOP );
+}
+
+/**************************************		Other peripheral control APIs		**************************************/
+
+uint32_t RCC_GetPullOutputClock(void)
+{
+	return 0;
+}
+
+//returns frequency of PLCK in Mhz
+uint32_t RCC_GetPCLK1Value(void)
+{
+	uint32_t pclk1, SystemClk;
+	uint8_t clksrc, temp, ahbp, apb1p;
+
+	clksrc = ( (RCC->CFGR >> 2) & 0x3); //moves bit 3 and 2 at the beggings and masks
+
+	if (clksrc == 0)
+	{
+		//sysclk = HSI
+		SystemClk = 16e6; //16Mhz
+
+	} else if (clksrc == 1)
+	{
+		//HSE
+		SystemClk = 8e6; //8Mhz
+	} else if (clksrc == 2)
+	{
+		//PLL - another func to calculate this needed - for now not implementend TODO
+		SystemClk = RCC_GetPullOutputClock();
+	}
+
+	temp = ( (RCC->CFGR >> 4) & 0xF); //value of ahb prescaler in code
+	if (temp < 8)
+	{
+		ahbp = 1;
+	} else
+	{
+		ahbp = AHB_PreScaler[temp-8]; //We have an array that holds possible prescalers: for prescaler=2 code is 8, 4->9, 8->10
+	}
+
+	temp = ( (RCC->CFGR >> 10) & 0x7); //value of ahb prescaler in code
+	if (temp < 4)
+	{
+		apb1p = 1;
+	} else
+	{
+		apb1p = APB1_PreScaler[temp-4]; //We have an array that holds possible prescalers: for prescaler=2 code is 8, 4->9, 8->10
+	}
+
+	pclk1 = (SystemClk / ahbp) / apb1p;
+
+	return pclk1;
+}
+
+void I2C_CloseSendData(I2C_Handle_t *pI2CHandle)
+{
+	//Disable the ITBUFEN Control bit
+	pI2CHandle->pI2Cx->CR2 &= ~( 1 << I2C_CR2_ITBUFEN);
+	//Disable the ITEVEN control bit
+	pI2CHandle->pI2Cx->CR2 &= ~( 1 << I2C_CR2_ITEVTEN);
+
+	pI2CHandle->TxRxState = I2C_READY;
+	pI2CHandle->pTxBuffer = NULL;
+}
+
+void I2C_CloseReceiveData(I2C_Handle_t *pI2CHandle)
+{
+	//Disable the ITBUFEN Control bit
+	pI2CHandle->pI2Cx->CR2 &= ~( 1 << I2C_CR2_ITBUFEN);
+	//Disable the ITEVEN control bit
+	pI2CHandle->pI2Cx->CR2 &= ~( 1 << I2C_CR2_ITEVTEN);
+
+	pI2CHandle->TxRxState = I2C_READY;
+	pI2CHandle->pRxBuffer = NULL;
+	pI2CHandle->RxLen = 0;
+	pI2CHandle->RxSize = 0;
+	if (pI2CHandle->I2C_Config.I2C_ACKControl == I2C_ACK_ENABLE)
+	{
+		I2C_ManageAcking(pI2CHandle->pI2Cx, ENABLE);
+	}
+}
+

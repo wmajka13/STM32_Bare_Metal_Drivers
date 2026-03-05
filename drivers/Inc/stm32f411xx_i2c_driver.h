@@ -5,8 +5,8 @@
  *      Author: Wiktor Majka
  */
 
-#ifndef INC_STM32F411_I2C_DRIVER_H_
-#define INC_STM32F411_I2C_DRIVER_H_
+#ifndef INC_STM32F411XX_I2C_DRIVER_H_
+#define INC_STM32F411XX_I2C_DRIVER_H_
 
 #include "stm32f411xx.h"
 
@@ -169,4 +169,4 @@ void I2C_ManageAcking(I2C_RegDef_t *pI2Cx, uint8_t EnOrDi);
 void I2C_ApplicationEventCallback(I2C_Handle_t *pI2CHandle, uint8_t AppEv);
 
 
-#endif /* INC_STM32F411_I2C_DRIVER_H_ */
+#endif /* INC_STM32F411XX_I2C_DRIVER_H_ */

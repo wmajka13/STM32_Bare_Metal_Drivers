@@ -167,7 +167,7 @@ void SPI_IRQHandling(SPI_Handle_t *pSPIHandle);
 
 
 /*
- * 	Setting and clearing flags
+ * 	Setting, reading and clearing bits
  */
 void SPI_PeripheralControl(SPI_RegDef_t *pSPIx, uint8_t EnOrDi);
 void SPI_SSIConfig(SPI_RegDef_t *pSPIx, uint8_t EnOrDi);

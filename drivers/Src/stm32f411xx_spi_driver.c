@@ -15,7 +15,6 @@ static inline void SPI_RXE_Interrupt_Handle(SPI_Handle_t *pSPIHandle);
 static inline void SPI_OVR_ERR_Interrupt_Handle(SPI_Handle_t *pSPIHandle);
 
 
-
 /*****************************************************************************************************************/
 /**************************************		Global API implementations		**************************************/
 /*****************************************************************************************************************/
@@ -222,7 +221,7 @@ void SPI_ReceiveData(SPI_RegDef_t *pSPIx, uint8_t *pRxBuffer, uint32_t Len)
 
 
 
-/**************************************		Data send and receive with interrrupts		**************************************/
+/**************************************		Data send and receive with interrupts		**************************************/
 
 /**
  * Starts sending data through SPIx using interrupts - function bascially just notes the information about transmission in tha Handle.
@@ -480,7 +479,7 @@ static inline void SPI_OVR_ERR_Interrupt_Handle(SPI_Handle_t *pSPIHandle)
 
 
 
-/**************************************		Setting and clearing flags		**************************************/
+/**************************************		Setting, reading and clearing bits		**************************************/
 
 /**
  * Enables the SPIx - have to be enabled!
