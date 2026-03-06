@@ -131,6 +131,9 @@ void I2C_PeriClockControl(I2C_RegDef_t *pI2Cx, uint8_t EnorDI)
  */
 void I2C_Init(I2C_Handle_t *pI2CHandle)
 {
+	//0. Enable the clock for i2c
+	I2C_PeriClockControl(pI2CHandle->pI2Cx, ENABLE);
+
 	uint32_t tempreg = 0;
 	//1. Configure the Mode (standard or fast )
 
@@ -247,7 +250,7 @@ void I2C_MasterSendData(I2C_Handle_t *pI2CHandle, uint8_t *pTxBuffer, uint32_t L
 	//6. send the data until Len becomes 0
 	while (Len > 0)
 	{
-		while ( ! I2C_GetFlagStatus(pI2CHandle->pI2Cx, I2C_FLAG_TxE) ) //waits until TxE=1
+		while ( ! I2C_GetFlagStatus(pI2CHandle->pI2Cx, I2C_FLAG_TxE) ); //waits until TxE=1
 		pI2CHandle->pI2Cx->DR = *pTxBuffer;
 		pTxBuffer++;
 		Len--;
