@@ -25,8 +25,8 @@ void delay(void)
 }
 
 
-//PB6 (stm32) - SCLK - Green - A5 (arduino)
-//PB7 (stm32) - SDA - Yellow - A4 (arduino)
+//PB8 (stm32) - SCLK - Green - A5 (arduino)
+//PB9 (stm32) - SDA - Yellow - A4 (arduino)
 void I2C_GPIOInits(void)
 {
 	GPIO_Handle_t I2CPins = {0};
@@ -92,16 +92,16 @@ int main()
 		delay();
 
 		command = READ_LEN;
-		I2C_MasterSendData(&I2C1Handle, &command, 1, SLAVE_ADDR);
+		I2C_MasterSendData(&I2C1Handle, &command, 1, SLAVE_ADDR, I2C_RS_ENABLED);
 
-		I2C_MasterReceiveData(&I2C1Handle, &DataLen, 1, SLAVE_ADDR);
+		I2C_MasterReceiveData(&I2C1Handle, &DataLen, 1, SLAVE_ADDR, I2C_RS_ENABLED);
 
 		delay();
 
 		command = READ_DATA;
-		I2C_MasterSendData(&I2C1Handle, &command, 1, SLAVE_ADDR);
+		I2C_MasterSendData(&I2C1Handle, &command, 1, SLAVE_ADDR, I2C_RS_ENABLED);
 
-		I2C_MasterReceiveData(&I2C1Handle, DataRead, DataLen, SLAVE_ADDR);
+		I2C_MasterReceiveData(&I2C1Handle, DataRead, DataLen, SLAVE_ADDR, I2C_RS_DISABLED);
 
 	}
 
