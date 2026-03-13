@@ -496,7 +496,7 @@ void I2C_EV_IRQHandling(I2C_Handle_t *pI2CHandle)
 	uint32_t temp1, temp2, temp3;
 
 	temp1 = pI2CHandle->pI2Cx->CR2 & ( 1 << I2C_CR2_ITEVTEN ); //checking if ITEVENT is set
-	temp1 = pI2CHandle->pI2Cx->CR2 & ( 1 << I2C_CR2_ITBUFEN );
+	temp2 = pI2CHandle->pI2Cx->CR2 & ( 1 << I2C_CR2_ITBUFEN );
 
 
 
@@ -600,19 +600,20 @@ void I2C_EV_IRQHandling(I2C_Handle_t *pI2CHandle)
 	if (temp1 && temp2 && temp3)
 	{
 		//RxNE flag is set
-		if (pI2CHandle->TxRxState == I2C_BUSY_IN_RX)
+
+		if (pI2CHandle->pI2Cx->SR2 & ( 1 << I2C_SR2_MSL )) // checking whether the device is a master!
 		{
-			if (pI2CHandle->pI2Cx->SR2 & ( 1 << I2C_SR2_MSL )) // checking whether the device is a master!
+			if (pI2CHandle->TxRxState == I2C_BUSY_IN_RX)
 			{
 				//master
 				I2C_MasterHandleRXNEInterrupt(pI2CHandle);
-			} else
+			}
+		} else
+		{
+			//slave
+			if ( !(pI2CHandle->pI2Cx->SR2 & ( 1 << I2C_SR2_TRA) ) )
 			{
-				//slave
-				if (pI2CHandle->pI2Cx->SR2 & ( 1 << I2C_SR2_TRA) )
-				{
-					I2C_ApplicationEventCallback(pI2CHandle, I2C_EV_DATA_RCV);
-				}
+				I2C_ApplicationEventCallback(pI2CHandle, I2C_EV_DATA_RCV);
 			}
 		}
 	}
@@ -866,3 +867,18 @@ void I2C_CloseReceiveData(I2C_Handle_t *pI2CHandle)
 	}
 }
 
+void I2C_SlaveEnableDisableCallbackEvents(I2C_RegDef_t *pI2Cx, uint8_t EnorDi)
+{
+	if (EnorDi == ENABLE)
+	{
+		pI2Cx->CR2 |= ( 1 << I2C_CR2_ITBUFEN);
+		pI2Cx->CR2 |= ( 1 << I2C_CR2_ITEVTEN);
+		pI2Cx->CR2 |= ( 1 << I2C_CR2_ITERREN);
+
+	} else if (EnorDi == DISABLE)
+	{
+		pI2Cx->CR2 &= ~( 1 << I2C_CR2_ITBUFEN);
+		pI2Cx->CR2 &= ~( 1 << I2C_CR2_ITEVTEN);
+		pI2Cx->CR2 &= ~( 1 << I2C_CR2_ITERREN);
+	}
+}
