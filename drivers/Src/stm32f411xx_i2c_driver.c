@@ -770,7 +770,12 @@ static inline void I2C_MasterHandleRXNEInterrupt(I2C_Handle_t *pI2CHandle)
 
 /**************************************		Setting, reading and clearing bits		**************************************/
 
-
+/**
+ * Gets status of a given flag - macors defined in .h file
+ *
+ * @param pI2Cx 		I2Cx registers structure
+ * @param FlagNaem		Macro of a flag
+ */
 /**************************************		Setting, reading and clearing bits		**************************************/
 
 uint8_t I2C_GetFlagStatus(I2C_RegDef_t *pI2Cx, uint32_t FlagName)
@@ -782,6 +787,14 @@ uint8_t I2C_GetFlagStatus(I2C_RegDef_t *pI2Cx, uint32_t FlagName)
 	return FLAG_RESET;
 }
 
+
+
+/**
+ * Enables/Disables the I2Cx peripheral
+ *
+ * @param pI2CIHandle 		Structure for I2Cx registers
+ * @param EnOrDi			Enable/Disable macro
+ */
 void I2C_PeripheralControl(I2C_RegDef_t *pI2Cx, uint8_t EnOrDi)
 {
 	if(EnOrDi == ENABLE)
@@ -794,6 +807,14 @@ void I2C_PeripheralControl(I2C_RegDef_t *pI2Cx, uint8_t EnOrDi)
 
 }
 
+
+
+/**
+ * Enables/Diasbles the acking
+ *
+ * @param pI2CIHandle 		Structure for I2Cx registers
+ * @param EnOrDi			Enable/Disable macro
+ */
 void I2C_ManageAcking(I2C_RegDef_t *pI2Cx, uint8_t EnOrDi)
 {
 	if (EnOrDi == I2C_ACK_ENABLE)
@@ -805,6 +826,14 @@ void I2C_ManageAcking(I2C_RegDef_t *pI2Cx, uint8_t EnOrDi)
 	}
 }
 
+
+
+/**
+ * Enables the interrupts/events when working as slave
+ *
+ * @param pI2CIHandle 		Structure for I2Cx registers
+ * @param EnOrDi			Enable/Disable macro
+ */
 void I2C_SlaveEnableDisableCallbackEvents(I2C_RegDef_t *pI2Cx, uint8_t EnorDi)
 {
 	if (EnorDi == ENABLE)
@@ -820,15 +849,38 @@ void I2C_SlaveEnableDisableCallbackEvents(I2C_RegDef_t *pI2Cx, uint8_t EnorDi)
 		pI2Cx->CR2 &= ~( 1 << I2C_CR2_ITERREN);
 	}
 }
+
+
+/**
+ * Generates start condition
+ *
+ * @param pI2CIHandle 		Structure for I2Cx registers
+ */
 static inline void I2C_GenerateStartCondition(I2C_RegDef_t *pI2Cx)
 {
 	pI2Cx->CR1 |= ( 1 << I2C_CR1_START );
 }
 
+
+
+/**
+ * Generates stop condition
+ *
+ * @param pI2CIHandle 		Structure for I2Cx registers
+ */
 static inline void I2C_GenerateStopCondition(I2C_RegDef_t *pI2Cx)
 {
 	pI2Cx->CR1 |= ( 1 << I2C_CR1_STOP );
 }
+
+
+/**
+ * Executes address phase
+ *
+ * @param pI2CIHandle 			Structure for I2Cx registers
+ * @param SlaveAddr				Address of a slave
+ * @param ReadorWrite			Operation - writing or reading - adds R/W bit
+ */
 static inline void I2C_ExecuteAddressPhase(I2C_RegDef_t *pI2Cx, uint8_t SlaveAddr, uint8_t ReadorWrite)
 {
 	SlaveAddr = (SlaveAddr << 1);
@@ -842,6 +894,13 @@ static inline void I2C_ExecuteAddressPhase(I2C_RegDef_t *pI2Cx, uint8_t SlaveAdd
 
 	pI2Cx->DR = SlaveAddr;
 }
+
+
+/**
+ * Clears the ADDR flag -
+ *
+ * @param pI2CIHandle 		Handle for a given I2Cx
+ */
 static inline void I2C_ClearADDRFlag(I2C_Handle_t *pI2CHandle)
 {
 	uint32_t dummyread;
@@ -884,11 +943,18 @@ static inline void I2C_ClearADDRFlag(I2C_Handle_t *pI2CHandle)
 
 /**************************************		Calculating clock value		**************************************/
 
+/**
+ * Calculates PLLCK speed TODO
+ */
 uint32_t RCC_GetPullOutputClock(void)
 {
 	return 0;
 }
 //returns frequency of PLCK in Mhz
+
+/**
+ * Calculates the PCLK1 value
+ */
 uint32_t RCC_GetPCLK1Value(void)
 {
 	uint32_t pclk1, SystemClk;
@@ -939,6 +1005,11 @@ uint32_t RCC_GetPCLK1Value(void)
 
 /**************************************		Other peripheral control APIs		**************************************/
 
+/**
+ * Closes the data transmission, clears flags and buffers
+ *
+ * @param pI2CIHandle 		Handle for a given I2Cx
+ */
 void I2C_CloseSendData(I2C_Handle_t *pI2CHandle)
 {
 	//Disable the ITBUFEN Control bit
@@ -950,6 +1021,13 @@ void I2C_CloseSendData(I2C_Handle_t *pI2CHandle)
 	pI2CHandle->pTxBuffer = NULL;
 }
 
+
+
+/**
+ * Closes the data reception
+ *
+ * @param pI2CIHandle 		Handle for a given I2Cx
+ */
 void I2C_CloseReceiveData(I2C_Handle_t *pI2CHandle)
 {
 	//Disable the ITBUFEN Control bit
