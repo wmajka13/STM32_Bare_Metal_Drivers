@@ -333,7 +333,7 @@ void SPI_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDI)
 
 
 /**
- * Enables or disables the IRQs for a given SPIx
+ * Sets the priority of interrupt for given SPIx
  *
  * @param IRQNumber 		Macro of an IRQNumber for a given SPIx - specified in MCU specific header file
  * @param IRQPriority   	Macro of an IRQPriority - allows to set priorites of IRQs
