@@ -4,7 +4,7 @@
 
 <p align="center">
 
-&#x20; <img src="assets/SPI\_communication\_gif.gif" width="400" alt="SPI Hardware Demonstration">
+&#x20; <img src="./assets/SPI\_communication\_gif.gif" width="400" alt="SPI Hardware Demonstration">
 
 </p>
 
