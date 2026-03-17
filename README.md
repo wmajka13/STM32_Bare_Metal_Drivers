@@ -1,6 +1,8 @@
 # STM32F4 Bare-Metal Peripheral Drivers
 
-![SPI Hardware Demonstration](assets/SPI_communication_gif.gif)
+<p align="center">
+  <img src="assets/SPI_communication_gif.gif" width="400" alt="SPI Hardware Demonstration">
+</p>
 
 ## Overview
 
