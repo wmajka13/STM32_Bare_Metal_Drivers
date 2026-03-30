@@ -90,6 +90,19 @@ typedef struct
 #define USART_HW_FLOW_CTRL_RTS    		2
 #define USART_HW_FLOW_CTRL_CTS_RTS		3
 
+/*
+ *  USART related status flag deifinitions
+ */
+#define USART_PE_FLAG 		(1 << USART_SR_PE)
+#define USART_FE_FLAG 		(1 << USART_SR_FE)
+#define USART_NF_FLAG 		(1 << USART_SR_NF)
+#define USART_ORE_FLAG 		(1 << USART_SR_ORE)
+#define USART_IDLE_FLAG 	(1 << USART_SR_IDLE)
+#define USART_RXNE_FLAG 	(1 << USART_SR_RXNE)
+#define USART_TC_FLAG 		(1 << USART_SR_TC)
+#define USART_TXE_FLAG 		(1 << USART_SR_TXE)
+#define USART_LBD_FLAG 		(1 << USART_SR_LBD)
+#define USART_CTS_FLAG	 	(1 << USART_SR_CTS)
 
 
 
