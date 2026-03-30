@@ -1,4 +1,4 @@
-/*
+	/*
  * stm32f411xx_usart_driver.c
  *
  *  Created on: Feb 25, 2026
@@ -67,7 +67,7 @@ uint8_t USART_GetFlagStatus(USART_RegDef_t *pUSARTx , uint32_t FlagName)
 
 void USART_ClearFlag(USART_RegDef_t *pUSARTx, uint16_t StatusFlagName)
 {
-
+//TODO:
 }
 
 /*
@@ -123,3 +123,4 @@ void USART_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority)
 	uint8_t shift_amount = ( 8 * iprx_byte ) + (8 - NO_PR_BITS_IMPLEMENTED);
 	*(NVIC_PR_BASE_ADDR + iprx) |= ( IRQPriority << shift_amount );
 }
+	
