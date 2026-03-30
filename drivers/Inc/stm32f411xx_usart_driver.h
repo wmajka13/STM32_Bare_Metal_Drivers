@@ -34,6 +34,13 @@ typedef struct
 	USART_RegDef_t 		*pUSARTx;
 	USART_Config_t 		USARTConfig;
 
+	uint8_t 			*pTxBuffer;  	/*	Storing the Tx buffer address	*/
+	uint8_t 			*pRxBuffer;  	/*	Storing the Rx buffer address	*/
+	uint32_t 			TxLen;  		/*	Storing the Tx len	*/
+	uint32_t 			RxLen;  		/*	Storing the Tx len  */
+	uint8_t 			TxState;  		/*	Storing the Tx state	*/
+	uint8_t 			RxState;  		/*	Storing the Tx state    */
+
 }USART_Handle_t;
 
 
@@ -104,7 +111,12 @@ typedef struct
 #define USART_LBD_FLAG 		(1 << USART_SR_LBD)
 #define USART_CTS_FLAG	 	(1 << USART_SR_CTS)
 
-
+/*
+ * 	Possible USART application states
+ */
+#define USART_READY						0
+#define USART_BUSY_IN_RX				1
+#define USART_BUSY_IN_TX				2
 
 /******************************************************************************************/
  /*								APIs supported by this driver
