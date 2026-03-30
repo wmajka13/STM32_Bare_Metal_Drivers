@@ -301,13 +301,19 @@ uint8_t USART_SendDataIT(USART_Handle_t *pUSARTHandle, uint8_t *pTxBuffer, uint3
 	uint8_t txstate;
 
 	// 1. Get current Tx state from the handle
-	// TODO
+	txstate = pUSARTHandle->TxState;
 
 	// 2. If txstate is NOT busy in TX:
 	// - Save length, buffer address, and set state to BUSY_IN_TX in the handle
 	// - Enable interrupt for TXE (Transmit Data Register Empty)
 	// - Enable interrupt for TC (Transmission Complete)
-	// TODO
+	if (txstate != USART_BUSY_IN_TX)
+	{
+		pUSARTHandle->TxLen = Len;
+		pUSARTHandle->pTxBuffer = pTxBuffer;
+		pUSARTHandle->TxState = USART_BUSY_IN_TX;
+		//TODO: Finish
+	}
 
 	// 3. Return current txstate
 	// TODO
