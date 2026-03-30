@@ -245,7 +245,7 @@ void USART_SendData(USART_Handle_t *pUSARTHandle, uint8_t *pTxBuffer, uint32_t L
 			pTxBuffer++;
 		}
 		// 4. Wait till TC (Transmission Complete) flag is set in the SR
-		while (! USART_GetFlagStatus(pUSARTHandle->pUSARTx, USART_TC_FLAG)) {};
+		while (! USART_GetFlagStatus(pUSARTHandle->pUSARTx, (1 << 6))) {}; //TODO
 		Len--;
 	}
 }
