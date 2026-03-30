@@ -203,3 +203,130 @@ void USART_Init(USART_Handle_t *pUSARTHandle)
 	// We will cover this in the lecture. No action required here 
 
 }
+
+
+/**************************************		Data send and receive		**************************************/
+
+void USART_SendData(USART_Handle_t *pUSARTHandle, uint8_t *pTxBuffer, uint32_t Len)
+{
+	uint16_t *pdata;
+
+	// 1. Loop over until "Len" number of bytes are transferred
+	while (Len > 0)
+	{
+		// 2. Wait until TXE (Transmit Data Register Empty) flag is set in the SR
+		while (! USART_GetFlagStatus(pUSARTHandle->pUSARTx, USART_TXE_FLAG)) {};
+
+		// 3. Check the USART_WordLength item for 9BIT or 8BIT in a frame
+		if (pUSARTHandle->USARTConfig.USART_WordLength == USART_WORDLEN_9BITS)
+		{
+			// 3a. If 9BIT:
+			// - Load the DR with 2 bytes (mask the bits other than first 9 bits)
+			// - Check for USART_ParityControl (Disable vs Enable)
+			// - If no parity: increment pTxBuffer twice
+			// - If parity enabled: increment pTxBuffer once (9th bit is handled by HW)
+			pUSARTHandle->pUSARTx->DR = *((uint16_t*)pTxBuffer) & 0x1FF;
+			if (pUSARTHandle->USARTConfig.USART_ParityControl == USART_PARITY_DISABLE)
+			{
+				pTxBuffer += 2;
+			} else
+			{
+				//9th bit is parity bit and it is added by hardware, so we send 8bit of data
+				//Still takes 2 byte but ignores the second byte - overwrites only the 9th bit with parity of 
+				//first byte
+				pTxBuffer++;
+			}
+		} else if (pUSARTHandle->USARTConfig.USART_WordLength == USART_WORDLEN_8BITS)
+		{
+			// 3b. If 8BIT:
+			// - Load the DR with 1 byte (mask to 8 bits)
+			// - Increment the buffer address
+			pUSARTHandle->pUSARTx->DR = *(pTxBuffer) & 0xFF;
+			pTxBuffer++;
+		}
+		// 4. Wait till TC (Transmission Complete) flag is set in the SR
+		while (! USART_GetFlagStatus(pUSARTHandle->pUSARTx, USART_TC_FLAG)) {};
+		Len--;
+	}
+}
+
+void USART_ReceiveData(USART_Handle_t *pUSARTHandle, uint8_t *pRxBuffer, uint32_t Len)
+{
+	// 1. Loop over until "Len" number of bytes are transferred
+	while (Len > 0)
+	{
+		// 2. Wait until RXNE (Read Data Register Not Empty) flag is set in the SR
+		while (! USART_GetFlagStatus(pUSARTHandle->pUSARTx, USART_RXNE_FLAG)) {};
+
+		// 3. Check the USART_WordLength to decide whether we are receiving 9bit or 8bit
+		if (pUSARTHandle->USARTConfig.USART_WordLength == USART_WORDLEN_9BITS)
+		{
+			// 3a. If 9BIT:
+			// - Check if USART_ParityControl is used or not
+			// - If no parity: read 9 bits (mask with 0x01FF), increment pRxBuffer twice
+			// - If parity enabled: read 8 bits (mask with 0xFF), increment pRxBuffer once
+			if (pUSARTHandle->USARTConfig.USART_ParityControl == USART_PARITY_DISABLE)
+			{
+				*((uint16_t*)pRxBuffer) = (pUSARTHandle->pUSARTx->DR & 0x01FF);
+				pRxBuffer += 2;
+			} else
+			{
+				pRxBuffer++;
+			}
+
+		} else if (pUSARTHandle->USARTConfig.USART_WordLength == USART_WORDLEN_8BITS)
+		{
+			// 3b. If 8BIT:
+			// - Check if USART_ParityControl is used or not
+			// - If no parity: read 8 bits, increment pRxBuffer
+			// - If parity enabled: read 7 bits (mask with 0x7F), increment pRxBuffer
+			if (pUSARTHandle->USARTConfig.USART_ParityControl == USART_PARITY_DISABLE)
+			{
+				*(pRxBuffer) = pUSARTHandle->pUSARTx->DR;
+				pRxBuffer++;
+			} else
+			{
+				*(pRxBuffer) = (pUSARTHandle->pUSARTx->DR & 0x7F);
+				pRxBuffer++;
+			}
+		}
+		Len--;
+	}
+}
+
+/**************************************		Data send and receive with interrupts		**************************************/
+
+uint8_t USART_SendDataIT(USART_Handle_t *pUSARTHandle, uint8_t *pTxBuffer, uint32_t Len)
+{
+	uint8_t txstate;
+
+	// 1. Get current Tx state from the handle
+	// TODO
+
+	// 2. If txstate is NOT busy in TX:
+	// - Save length, buffer address, and set state to BUSY_IN_TX in the handle
+	// - Enable interrupt for TXE (Transmit Data Register Empty)
+	// - Enable interrupt for TC (Transmission Complete)
+	// TODO
+
+	// 3. Return current txstate
+	// TODO
+    return txstate; // (Tymczasowy return, żeby kompilator nie narzekał)
+}
+
+uint8_t USART_ReceiveDataIT(USART_Handle_t *pUSARTHandle, uint8_t *pRxBuffer, uint32_t Len)
+{
+	uint8_t rxstate;
+
+	// 1. Get current Rx state from the handle
+	// TODO
+
+	// 2. If rxstate is NOT busy in RX:
+	// - Save length, buffer address, and set state to BUSY_IN_RX in the handle
+	// - Enable interrupt for RXNE (Read Data Register Not Empty)
+	// TODO
+
+	// 3. Return current rxstate
+	// TODO
+    return rxstate; // (Tymczasowy return, żeby kompilator nie narzekał)
+}
