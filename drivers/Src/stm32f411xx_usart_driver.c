@@ -312,11 +312,13 @@ uint8_t USART_SendDataIT(USART_Handle_t *pUSARTHandle, uint8_t *pTxBuffer, uint3
 		pUSARTHandle->TxLen = Len;
 		pUSARTHandle->pTxBuffer = pTxBuffer;
 		pUSARTHandle->TxState = USART_BUSY_IN_TX;
-		//TODO: Finish
+		pUSARTHandle->pUSARTx->CR1 |= (1 << USART_CR1_TXEIE);
+		pUSARTHandle->pUSARTx->CR1 |= (1 << USART_CR1_TCIE);
 	}
 
 	// 3. Return current txstate
-	// TODO
+	txstate = pUSARTHandle->TxState;
+	
     return txstate; // (Tymczasowy return, żeby kompilator nie narzekał)
 }
 
@@ -325,14 +327,21 @@ uint8_t USART_ReceiveDataIT(USART_Handle_t *pUSARTHandle, uint8_t *pRxBuffer, ui
 	uint8_t rxstate;
 
 	// 1. Get current Rx state from the handle
-	// TODO
+	rxstate = pUSARTHandle->RxState;
 
 	// 2. If rxstate is NOT busy in RX:
 	// - Save length, buffer address, and set state to BUSY_IN_RX in the handle
 	// - Enable interrupt for RXNE (Read Data Register Not Empty)
-	// TODO
+	if (rxstate != USART_BUSY_IN_RX)
+	{
+		pUSARTHandle->RxLen = Len;
+		pUSARTHandle->pRxBuffer = pRxBuffer;
+		pUSARTHandle->TxState = USART_BUSY_IN_RX;
+		pUSARTHandle->pUSARTx->CR1 |= (1 << USART_CR1_RXNEIE);
+	}
 
 	// 3. Return current rxstate
-	// TODO
+	rxstate = pUSARTHandle->RxState;
+
     return rxstate; // (Tymczasowy return, żeby kompilator nie narzekał)
 }
