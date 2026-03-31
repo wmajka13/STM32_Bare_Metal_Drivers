@@ -346,3 +346,57 @@ uint8_t USART_ReceiveDataIT(USART_Handle_t *pUSARTHandle, uint8_t *pRxBuffer, ui
 
     return rxstate; 
 }
+
+
+
+void USART_SetBaudRate(USART_RegDef_t *pUSARTx, uint32_t BaudRate)
+{
+	uint32_t PCLKx;
+	uint32_t usartdiv;
+	uint32_t M_part, F_part;
+	uint32_t tempreg = 0;
+	uint8_t OVER = 0;
+	// 1. Get the value of the correct APB bus clock into the variable PCLKx
+	// Note: Check which USART/UART peripheral hangs on APB1 and which on APB2
+	if (pUSARTx == USART2)
+	{
+		PCLKx == RCC_GetPCLK1Value();
+	} else 
+	{
+		PCLKx == RCC_GetPCLK2Value();
+	}
+
+	// 2. Check for OVER8 configuration bit in CR1
+	// Calculate the raw USARTDIV value based on OVER8 (oversampling by 8) or OVER16 (oversampling by 16)
+	if (((pUSARTx->CR1 >> USART_CR1_OVER8) & 0x1) == 0 )
+	{
+		OVER = 16;
+	} else
+	{
+		OVER = 8;
+	}
+
+	usartdiv = (25 * PCLKx) / (OVER / 4 * BaudRate);
+
+	// 3. Calculate the Mantissa part (M_part) from usartdiv
+	M_part = usartdiv / 100;
+
+	// 4. Place the Mantissa part in the appropriate bit position in tempreg
+	tempreg |= M_part << USART_BRR_DIV_MANT;
+
+	// 5. Extract the fraction part (F_part) from usartdiv
+	F_part = ( (usartdiv - (M_part * 100)) *  OVER + 50 ) / 100;
+
+	// 6. Calculate the final fractional value depending on OVER8 or OVER16
+	// Note: Remember to implement correct rounding logic and mask the result (3 bits for OVER8, 4 bits for OVER16)
+	// 7. Place the final fractional part in the appropriate bit position in tempreg
+	if (((pUSARTx->CR1 >> USART_CR1_OVER8) & 0x1) == 0 )
+	{
+		tempreg |= (F_part & 0xF) << USART_BRR_DIV_MANT;
+	} else
+	{
+		tempreg |= (F_part & 0x7) << USART_BRR_DIV_MANT;
+	}
+	// 8. Program the BRR (Baud Rate Register) with tempreg
+	pUSARTx->BRR = tempreg;
+}
