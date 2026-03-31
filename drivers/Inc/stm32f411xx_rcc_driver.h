@@ -4,9 +4,8 @@
 
 #include "stm32f411xx.h"
 
-
-
-
-
+uint32_t RCC_GetPullOutputClock(void);
+uint32_t RCC_GetPCLK1Value(void);
+uint32_t RCC_GetPCLK2Value(void);
 
 #endif
