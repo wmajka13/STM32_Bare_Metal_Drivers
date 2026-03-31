@@ -225,7 +225,8 @@ void USART_SendData(USART_Handle_t *pUSARTHandle, uint8_t *pTxBuffer, uint32_t L
 			// - Check for USART_ParityControl (Disable vs Enable)
 			// - If no parity: increment pTxBuffer twice
 			// - If parity enabled: increment pTxBuffer once (9th bit is handled by HW)
-			pUSARTHandle->pUSARTx->DR = *((uint16_t*)pTxBuffer) & 0x1FF;
+			pdata = (uint16_t*)pTxBuffer;
+			pUSARTHandle->pUSARTx->DR = *(pdata) & 0x1FF;
 			if (pUSARTHandle->USARTConfig.USART_ParityControl == USART_PARITY_DISABLE)
 			{
 				pTxBuffer += 2;
@@ -245,7 +246,7 @@ void USART_SendData(USART_Handle_t *pUSARTHandle, uint8_t *pTxBuffer, uint32_t L
 			pTxBuffer++;
 		}
 		// 4. Wait till TC (Transmission Complete) flag is set in the SR
-		while (! USART_GetFlagStatus(pUSARTHandle->pUSARTx, (1 << 6))) {}; //TODO
+		while (! USART_GetFlagStatus(pUSARTHandle->pUSARTx, (1 << USART_TC_FLAG))) {};
 		Len--;
 	}
 }
@@ -318,8 +319,8 @@ uint8_t USART_SendDataIT(USART_Handle_t *pUSARTHandle, uint8_t *pTxBuffer, uint3
 
 	// 3. Return current txstate
 	txstate = pUSARTHandle->TxState;
-			
-    return txstate; // (Tymczasowy return, żeby kompilator nie narzekał)
+
+    return txstate;
 }
 
 uint8_t USART_ReceiveDataIT(USART_Handle_t *pUSARTHandle, uint8_t *pRxBuffer, uint32_t Len)
@@ -343,5 +344,5 @@ uint8_t USART_ReceiveDataIT(USART_Handle_t *pUSARTHandle, uint8_t *pRxBuffer, ui
 	// 3. Return current rxstate
 	rxstate = pUSARTHandle->RxState;
 
-    return rxstate; // (Tymczasowy return, żeby kompilator nie narzekał)
+    return rxstate; 
 }

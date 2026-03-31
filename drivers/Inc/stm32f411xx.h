@@ -562,7 +562,7 @@ typedef struct
 #define USART_SR_ORE			3
 #define USART_SR_IDLE			4
 #define USART_SR_RXNE			5
-#define USART_SR_TX				6
+#define USART_SR_TC				6
 #define USART_SR_TXE			7
 #define USART_SR_LBD			8
 #define USART_SR_CTS			9
