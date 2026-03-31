@@ -318,7 +318,7 @@ uint8_t USART_SendDataIT(USART_Handle_t *pUSARTHandle, uint8_t *pTxBuffer, uint3
 
 	// 3. Return current txstate
 	txstate = pUSARTHandle->TxState;
-	
+			
     return txstate; // (Tymczasowy return, żeby kompilator nie narzekał)
 }
 
