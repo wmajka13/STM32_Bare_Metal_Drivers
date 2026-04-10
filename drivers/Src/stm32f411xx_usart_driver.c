@@ -199,9 +199,7 @@ void USART_Init(USART_Handle_t *pUSARTHandle)
 
 /******************************** Configuration of BRR (Baudrate register) **********************/
 
-	// Implement the code to configure the baud rate
-	// We will cover this in the lecture. No action required here 
-
+	USART_SetBaudRate(pUSARTHandle->pUSARTx, pUSARTHandle->USARTConfig.USART_Baud);
 }
 
 
@@ -351,7 +349,7 @@ uint8_t USART_ReceiveDataIT(USART_Handle_t *pUSARTHandle, uint8_t *pRxBuffer, ui
 
 void USART_SetBaudRate(USART_RegDef_t *pUSARTx, uint32_t BaudRate)
 {
-	uint32_t PCLKx;
+	uint32_t PCLKx = 0;
 	uint32_t usartdiv;
 	uint32_t M_part, F_part;
 	uint32_t tempreg = 0;
@@ -360,10 +358,10 @@ void USART_SetBaudRate(USART_RegDef_t *pUSARTx, uint32_t BaudRate)
 	// Note: Check which USART/UART peripheral hangs on APB1 and which on APB2
 	if (pUSARTx == USART2)
 	{
-		PCLKx == RCC_GetPCLK1Value();
+		PCLKx = RCC_GetPCLK1Value();
 	} else 
 	{
-		PCLKx == RCC_GetPCLK2Value();
+		PCLKx = RCC_GetPCLK2Value();
 	}
 
 	// 2. Check for OVER8 configuration bit in CR1
@@ -392,10 +390,10 @@ void USART_SetBaudRate(USART_RegDef_t *pUSARTx, uint32_t BaudRate)
 	// 7. Place the final fractional part in the appropriate bit position in tempreg
 	if (((pUSARTx->CR1 >> USART_CR1_OVER8) & 0x1) == 0 )
 	{
-		tempreg |= (F_part & 0xF) << USART_BRR_DIV_MANT;
+		tempreg |= (F_part & 0xF) << USART_BRR_DIV_FRAC;
 	} else
 	{
-		tempreg |= (F_part & 0x7) << USART_BRR_DIV_MANT;
+		tempreg |= (F_part & 0x7) << USART_BRR_DIV_FRAC;
 	}
 	// 8. Program the BRR (Baud Rate Register) with tempreg
 	pUSARTx->BRR = tempreg;
