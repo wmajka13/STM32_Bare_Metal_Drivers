@@ -155,6 +155,7 @@ void USART_IRQHandling(USART_Handle_t *pUSARTHandle)
 			USART_ApplicationEventCallback(pUSARTHandle, USART_EVENT_TX_CMPLT);
 		}
 	}
+	
 /************************* Check for TXE (Transmit Data Register Empty) flag ************/
 
 	// 1. Check the state of TXE bit in the SR and TXEIE bit in CR1
@@ -165,7 +166,7 @@ void USART_IRQHandling(USART_Handle_t *pUSARTHandle)
 	if (temp1 && temp2)
 	{
 	// 3. If TxBusyState is USART_BUSY_IN_TX and TxLen > 0:
-		if (pUSARTHandle->pTxBuffer == USART_BUSY_IN_TX)
+		if (pUSARTHandle->pTxBuffer == USART_BUSY_IN_TX && pUSARTHandle->TxLen > 0)
 		{
 	//    - Check the USART_WordLength (9BIT or 8BIT)
 			if (pUSARTHandle->USARTConfig.USART_WordLength == USART_WORDLEN_9BITS)
@@ -189,7 +190,7 @@ void USART_IRQHandling(USART_Handle_t *pUSARTHandle)
 	//    - Decrement the length (TxLen)
 			pUSARTHandle->TxLen-=2;
 		}
-		
+
 	// 4. If TxLen reaches 0:
 		if (pUSARTHandle->TxLen == 0)
 		{
@@ -197,15 +198,22 @@ void USART_IRQHandling(USART_Handle_t *pUSARTHandle)
 			pUSARTHandle->pUSARTx->CR1 &= ~(1 << USART_CR1_TXEIE);
 		}
 	}
+
 /************************* Check for RXNE (Read Data Register Not Empty) flag ***********/
 
 	// 1. Check the state of RXNE bit in the SR and RXNEIE bit in CR1
+	temp1 = (pUSARTHandle->pUSARTx->CR1 >> USART_CR1_RXNEIE) & 0x1;
+	temp2 = (pUSARTHandle->pUSARTx->SR >> USART_SR_RXNE) & 0x1;
 	// 2. If both are set, it means the interrupt is because of RXNE
+	if (temp1 && temp2)
+	{
 	// 3. If RxBusyState is USART_BUSY_IN_RX and RxLen > 0:
+	
 	//    - Check the USART_WordLength (9BIT or 8BIT)
 	//    - Read data from DR register to pRxBuffer (mask it properly based on Parity)
 	//    - Handle USART_ParityControl to know whether to increment pRxBuffer by 1 or 2
 	//    - Decrement the length (RxLen)
+	}
 	// 4. If RxLen reaches 0:
 	//    - Disable the RXNEIE bit
 	//    - Reset RxBusyState to USART_READY
