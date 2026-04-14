@@ -118,6 +118,12 @@ typedef struct
 #define USART_BUSY_IN_RX				1
 #define USART_BUSY_IN_TX				2
 
+/*
+ * 	USART application events macros
+ */
+#define USART_EVENT_TX_CMPLT			0
+
+
 /******************************************************************************************/
  /*								APIs supported by this driver
  /*		 For more information about the APIs check the function definitions

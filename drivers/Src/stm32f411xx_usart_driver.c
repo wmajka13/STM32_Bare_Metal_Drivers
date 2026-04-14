@@ -125,6 +125,105 @@ void USART_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority)
 }
 	
 
+
+void USART_IRQHandling(USART_Handle_t *pUSARTHandle)
+{
+	uint32_t temp1, temp2, temp3;
+
+/************************* Check for TC (Transmission Complete) flag ********************/
+
+	// 1. Check the state of TC bit in the SR and TCIE bit in CR1
+	temp1 = (pUSARTHandle->pUSARTx->CR1 >> USART_CR1_TCIE) & 0x1;
+	temp2 = (pUSARTHandle->pUSARTx->SR >> USART_SR_TC) & 0x1;
+	// 2. If both are set, it means the interrupt is because of TC
+	if (temp1 && temp2)
+	{
+	// 3. If TxBusyState is USART_BUSY_IN_TX and TxLen is 0:
+		if (pUSARTHandle->TxState == USART_BUSY_IN_TX && pUSARTHandle->TxLen == 0)
+		{
+	//    - Clear the TC flag
+			pUSARTHandle->pUSARTx->SR &= ~(1 << USART_SR_TC);
+	//    - Clear the TCIE control bit
+			pUSARTHandle->pUSARTx->CR1 &= ~(1 << USART_CR1_TCIE);
+	//    - Reset the application state (TxBusyState) to USART_READY
+			pUSARTHandle->TxState = USART_READY;
+	//    - Reset Buffer address to NULL
+			pUSARTHandle->pTxBuffer = NULL;
+	//    - Reset the length to zero
+			pUSARTHandle->TxLen = 0;
+	//    - Call the application callback with USART_EVENT_TX_CMPLT
+			USART_ApplicationEventCallback(pUSARTHandle, USART_EVENT_TX_CMPLT);
+	// TODO
+		}
+	}
+/************************* Check for TXE (Transmit Data Register Empty) flag ************/
+
+	// 1. Check the state of TXE bit in the SR and TXEIE bit in CR1
+	// 2. If both are set, it means the interrupt is because of TXE
+	// 3. If TxBusyState is USART_BUSY_IN_TX and TxLen > 0:
+	//    - Check the USART_WordLength (9BIT or 8BIT)
+	//    - Load the DR register with data from pTxBuffer (mask it properly)
+	//    - Handle USART_ParityControl to know whether to increment pTxBuffer by 1 or 2
+	//    - Decrement the length (TxLen)
+	// 4. If TxLen reaches 0:
+	//    - Clear the TXEIE bit (disable interrupt for TXE flag)
+	// TODO
+
+/************************* Check for RXNE (Read Data Register Not Empty) flag ***********/
+
+	// 1. Check the state of RXNE bit in the SR and RXNEIE bit in CR1
+	// 2. If both are set, it means the interrupt is because of RXNE
+	// 3. If RxBusyState is USART_BUSY_IN_RX and RxLen > 0:
+	//    - Check the USART_WordLength (9BIT or 8BIT)
+	//    - Read data from DR register to pRxBuffer (mask it properly based on Parity)
+	//    - Handle USART_ParityControl to know whether to increment pRxBuffer by 1 or 2
+	//    - Decrement the length (RxLen)
+	// 4. If RxLen reaches 0:
+	//    - Disable the RXNEIE bit
+	//    - Reset RxBusyState to USART_READY
+	//    - Call the application callback with USART_EVENT_RX_CMPLT
+	// TODO
+
+/************************* Check for CTS (Clear To Send) flag ***************************/
+	// Note: CTS feature is not applicable for UART4 and UART5
+
+	// 1. Check the status of CTS bit in the SR
+	// 2. Check the state of CTSE bit in CR3
+	// 3. Check the state of CTSIE bit in CR3
+	// 4. If all conditions are met:
+	//    - Clear the CTS flag in SR
+	//    - Call the application callback with USART_EVENT_CTS
+	// TODO
+
+/************************* Check for IDLE detection flag ********************************/
+
+	// 1. Check the status of IDLE flag bit in the SR and IDLEIE bit in CR1
+	// 2. If both are set:
+	//    - Clear the IDLE flag (Refer to the RM to understand the clear sequence!)
+	//    - Call the application callback with USART_EVENT_IDLE
+	// TODO
+
+/************************* Check for Overrun (ORE) detection flag ***********************/
+
+	// 1. Check the status of ORE flag in the SR and RXNEIE bit in CR1
+	// 2. If both are set:
+	//    - Need not clear the ORE flag here. Provide an API for the application to clear it.
+	//    - Call the application callback with USART_EVENT_ORE
+	// TODO
+
+/************************* Check for Error Flags (FE, NE, ORE) **************************/
+	// Note: Relevant for multibuffer communication.
+
+	// 1. Check the state of EIE bit in CR3
+	// 2. If set, check SR for FE (Framing Error), NE (Noise Error), and ORE flags
+	// 3. For each flag that is set, call the callback with:
+	//    - USART_ERREVENT_FE
+	//    - USART_ERREVENT_NE
+	//    - USART_ERREVENT_ORE
+	// Note: Refer to RM for software sequence to clear these flags (read SR, then read DR).
+	// TODO
+
+}
 /**************************************		Init and De_init		**************************************/
 
 
