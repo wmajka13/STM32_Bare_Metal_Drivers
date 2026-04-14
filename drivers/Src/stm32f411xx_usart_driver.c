@@ -208,17 +208,49 @@ void USART_IRQHandling(USART_Handle_t *pUSARTHandle)
 	if (temp1 && temp2)
 	{
 	// 3. If RxBusyState is USART_BUSY_IN_RX and RxLen > 0:
-	
+		if (pUSARTHandle->RxState == USART_BUSY_IN_RX && pUSARTHandle->RxLen > 0)
+		{
 	//    - Check the USART_WordLength (9BIT or 8BIT)
 	//    - Read data from DR register to pRxBuffer (mask it properly based on Parity)
 	//    - Handle USART_ParityControl to know whether to increment pRxBuffer by 1 or 2
 	//    - Decrement the length (RxLen)
+		
+			if (pUSARTHandle->USARTConfig.USART_WordLength == USART_WORDLEN_9BITS)
+			{
+				if (pUSARTHandle->USARTConfig.USART_ParityControl == USART_PARITY_DISABLE)
+				{
+					*((uint16_t*)(pUSARTHandle->pRxBuffer)) = (pUSARTHandle->pUSARTx->DR & 0x01FF);
+					pUSARTHandle->pRxBuffer += 2;
+				} else
+				{
+					(pUSARTHandle->pRxBuffer)++;
+				}
+
+			} else if (pUSARTHandle->USARTConfig.USART_WordLength == USART_WORDLEN_8BITS)
+			{
+				if (pUSARTHandle->USARTConfig.USART_ParityControl == USART_PARITY_DISABLE)
+				{
+					*(pUSARTHandle->pRxBuffer) = pUSARTHandle->pUSARTx->DR;
+					(pUSARTHandle->pRxBuffer)++;
+				} else
+				{
+					*(pUSARTHandle->pRxBuffer) = (pUSARTHandle->pUSARTx->DR & 0x7F);
+					(pUSARTHandle->pRxBuffer)++;
+				}
+			}
+			pUSARTHandle->RxLen--;
+		}
 	}
 	// 4. If RxLen reaches 0:
 	//    - Disable the RXNEIE bit
 	//    - Reset RxBusyState to USART_READY
 	//    - Call the application callback with USART_EVENT_RX_CMPLT
-	// TODO
+	if (pUSARTHandle->RxLen == 0)
+	{
+		pUSARTHandle->pUSARTx->CR1 &= ~(1 << USART_CR1_RXNEIE);
+		pUSARTHandle->RxState == USART_READY;
+		USART_ApplicationEventCallback(pUSARTHandle, USART_EVENT_RX_CMPLT);
+	}
 
 /************************* Check for CTS (Clear To Send) flag ***************************/
 	// Note: CTS feature is not applicable for UART4 and UART5

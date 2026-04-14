@@ -122,7 +122,7 @@ typedef struct
  * 	USART application events macros
  */
 #define USART_EVENT_TX_CMPLT			0
-
+#define USART_EVENT_RX_CMPLT			1
 
 /******************************************************************************************/
  /*								APIs supported by this driver
