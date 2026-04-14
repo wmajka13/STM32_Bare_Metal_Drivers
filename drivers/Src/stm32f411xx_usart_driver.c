@@ -254,14 +254,21 @@ void USART_IRQHandling(USART_Handle_t *pUSARTHandle)
 
 /************************* Check for CTS (Clear To Send) flag ***************************/
 	// Note: CTS feature is not applicable for UART4 and UART5
-
+	temp1 = ( pUSARTHandle->pUSARTx->SR >> USART_SR_CTS ) & 0x1;
+	temp2 = ( pUSARTHandle->pUSARTx->CR3 >> USART_CR3_CTSE ) & 0x1;
+	temp3 = ( pUSARTHandle->pUSARTx->CR3 >> USART_CR3_CTSIE ) & 0x1;
 	// 1. Check the status of CTS bit in the SR
 	// 2. Check the state of CTSE bit in CR3
 	// 3. Check the state of CTSIE bit in CR3
+
 	// 4. If all conditions are met:
 	//    - Clear the CTS flag in SR
 	//    - Call the application callback with USART_EVENT_CTS
-	// TODO
+	if (temp1 && temp2 && temp3)
+	{
+		pUSARTHandle->pUSARTx->SR |= (1 << USART_SR_CTS);
+		USART_ApplicationEventCallback(pUSARTHandle, USART_EVENT_CTS);
+	}
 
 /************************* Check for IDLE detection flag ********************************/
 

@@ -123,6 +123,7 @@ typedef struct
  */
 #define USART_EVENT_TX_CMPLT			0
 #define USART_EVENT_RX_CMPLT			1
+#define USART_EVENT_CTS					2
 
 /******************************************************************************************/
  /*								APIs supported by this driver
