@@ -179,7 +179,7 @@ void USART_Init(USART_Handle_t *pUSARTHandle)
 /******************************** Configuration of CR3 ******************************************/
 	
 	tempreg = 0;
-	
+
 	// 1. Configure USART hardware flow control (None, CTS, RTS, or CTS+RTS)
 	if (pUSARTHandle->USARTConfig.USART_HWFlowControl == USART_HW_FLOW_CTRL_CTS)
     {
@@ -244,7 +244,7 @@ void USART_SendData(USART_Handle_t *pUSARTHandle, uint8_t *pTxBuffer, uint32_t L
 			pTxBuffer++;
 		}
 		// 4. Wait till TC (Transmission Complete) flag is set in the SR
-		while (! USART_GetFlagStatus(pUSARTHandle->pUSARTx, (1 << USART_TC_FLAG))) {};
+		while (! USART_GetFlagStatus(pUSARTHandle->pUSARTx, USART_TC_FLAG)) {};
 		Len--;
 	}
 }
