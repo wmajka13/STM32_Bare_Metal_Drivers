@@ -63,7 +63,12 @@ void UART_Inits(void)
 	USART_Init(&USART6Handle);
 }
 
-char msg[1024] = "hello\n";
+char msg[1024] = "hello\r\n";
+
+void delay(void)
+{
+	for(uint32_t i = 0 ; i < 500000/2 ; i ++);
+}
 
 int main()
 {
@@ -76,6 +81,7 @@ int main()
 	{
 
 		while( GPIO_ReadFromInputPin(GPIOC, GPIO_PIN_NO_13) ) {};
+		delay();
 
 		USART_SendData(&USART6Handle, (uint8_t*)msg, strlen(msg));
 	}
