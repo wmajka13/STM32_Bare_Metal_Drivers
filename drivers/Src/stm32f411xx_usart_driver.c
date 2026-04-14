@@ -166,7 +166,7 @@ void USART_IRQHandling(USART_Handle_t *pUSARTHandle)
 	if (temp1 && temp2)
 	{
 	// 3. If TxBusyState is USART_BUSY_IN_TX and TxLen > 0:
-		if (pUSARTHandle->pTxBuffer == USART_BUSY_IN_TX && pUSARTHandle->TxLen > 0)
+		if (pUSARTHandle->TxState == USART_BUSY_IN_TX && pUSARTHandle->TxLen > 0)
 		{
 	//    - Check the USART_WordLength (9BIT or 8BIT)
 			if (pUSARTHandle->USARTConfig.USART_WordLength == USART_WORDLEN_9BITS)
@@ -188,7 +188,7 @@ void USART_IRQHandling(USART_Handle_t *pUSARTHandle)
 				pUSARTHandle->pTxBuffer++;
 			}
 	//    - Decrement the length (TxLen)
-			pUSARTHandle->TxLen-=2;
+			pUSARTHandle->TxLen--;
 		}
 
 	// 4. If TxLen reaches 0:
@@ -248,7 +248,7 @@ void USART_IRQHandling(USART_Handle_t *pUSARTHandle)
 	if (pUSARTHandle->RxLen == 0)
 	{
 		pUSARTHandle->pUSARTx->CR1 &= ~(1 << USART_CR1_RXNEIE);
-		pUSARTHandle->RxState == USART_READY;
+		pUSARTHandle->RxState = USART_READY;
 		USART_ApplicationEventCallback(pUSARTHandle, USART_EVENT_RX_CMPLT);
 	}
 
@@ -335,6 +335,7 @@ void USART_IRQHandling(USART_Handle_t *pUSARTHandle)
 
 	}
 }
+
 /**************************************		Init and De_init		**************************************/
 
 
@@ -608,4 +609,9 @@ void USART_SetBaudRate(USART_RegDef_t *pUSARTx, uint32_t BaudRate)
 	}
 	// 8. Program the BRR (Baud Rate Register) with tempreg
 	pUSARTx->BRR = tempreg;
+}
+
+void USART_ApplicationEventCallback(USART_Handle_t *pUSARTHandle, uint8_t AppEv)
+{
+
 }

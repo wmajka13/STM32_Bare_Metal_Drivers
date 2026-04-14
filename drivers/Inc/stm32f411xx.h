@@ -414,6 +414,11 @@ typedef struct
 #define IRQ_NO_I2C2_ER			34
 #define IRQ_NO_I2C3_ER			80
 
+//USART event interrupts
+#define IRQ_NO_USART1			37
+#define IRQ_NO_USART2 			38
+#define IRQ_NO_USART6			71
+
 
 /*
  * IRQ (Interrupt Request) Priorities

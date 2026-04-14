@@ -76,6 +76,9 @@ int main()
 	GPIO_ButtonInit();
 	UART_Inits();
 	USART_PeripheralControl(USART6, ENABLE);
+	USART_IRQInterruptConfig(IRQ_NO_USART6, ENABLE);
+	USART_IRQPriorityConfig(IRQ_NO_USART6, 1);
+
 
 	while(1)
 	{
@@ -83,10 +86,15 @@ int main()
 		while( GPIO_ReadFromInputPin(GPIOC, GPIO_PIN_NO_13) ) {};
 		delay();
 
-		USART_SendData(&USART6Handle, (uint8_t*)msg, strlen(msg));
+		USART_SendDataIT(&USART6Handle, (uint8_t*)msg, strlen(msg));
 	}
 
 	return 0;
+}
+
+void USART6_IRQHandler(void)
+{
+	USART_IRQHandling(&USART6Handle);
 }
 
 
