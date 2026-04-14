@@ -288,24 +288,52 @@ void USART_IRQHandling(USART_Handle_t *pUSARTHandle)
 
 /************************* Check for Overrun (ORE) detection flag ***********************/
 
+	temp1 = ( pUSARTHandle->pUSARTx->SR >> USART_SR_ORE ) & 0x1;
+	temp2 = ( pUSARTHandle->pUSARTx->CR1 >> USART_CR1_RXNEIE ) & 0x1;
 	// 1. Check the status of ORE flag in the SR and RXNEIE bit in CR1
 	// 2. If both are set:
 	//    - Need not clear the ORE flag here. Provide an API for the application to clear it.
 	//    - Call the application callback with USART_EVENT_ORE
-	// TODO
+	USART_ApplicationEventCallback(pUSARTHandle, USART_EVENT_ORE);
 
 /************************* Check for Error Flags (FE, NE, ORE) **************************/
 	// Note: Relevant for multibuffer communication.
 
 	// 1. Check the state of EIE bit in CR3
+	temp1 = ( pUSARTHandle->pUSARTx->CR3 >> USART_CR3_EIE ) & 0x1;
 	// 2. If set, check SR for FE (Framing Error), NE (Noise Error), and ORE flags
 	// 3. For each flag that is set, call the callback with:
 	//    - USART_ERREVENT_FE
-	//    - USART_ERREVENT_NE
+	//    - USART_ERREVENT_NF
 	//    - USART_ERREVENT_ORE
 	// Note: Refer to RM for software sequence to clear these flags (read SR, then read DR).
-	// TODO
+	if (temp1)
+	{
+		temp2 = ( pUSARTHandle->pUSARTx->SR >> USART_SR_FE) & 0x1;
+		if (temp2)
+		{
+			(void)pUSARTHandle->pUSARTx->SR;
+			(void)pUSARTHandle->pUSARTx->DR;
+			USART_ApplicationEventCallback(pUSARTHandle, USART_ERREVENT_FE);
+		}
+		
+		temp2 = ( pUSARTHandle->pUSARTx->SR >> USART_SR_NF) & 0x1;
+		if (temp2)
+		{
+			(void)pUSARTHandle->pUSARTx->SR;
+			(void)pUSARTHandle->pUSARTx->DR;
+			USART_ApplicationEventCallback(pUSARTHandle, USART_ERREVENT_NF);
+		}
 
+		temp2 = ( pUSARTHandle->pUSARTx->SR >> USART_SR_ORE) & 0x1;
+		if (temp2)
+		{
+			(void)pUSARTHandle->pUSARTx->SR;
+			(void)pUSARTHandle->pUSARTx->DR;
+			USART_ApplicationEventCallback(pUSARTHandle, USART_ERREVENT_ORE);
+		}
+
+	}
 }
 /**************************************		Init and De_init		**************************************/
 
