@@ -272,11 +272,19 @@ void USART_IRQHandling(USART_Handle_t *pUSARTHandle)
 
 /************************* Check for IDLE detection flag ********************************/
 
+	temp1 = ( pUSARTHandle->pUSARTx->SR >> USART_SR_IDLE ) & 0x1;
+	temp2 = ( pUSARTHandle->pUSARTx->CR1 >> USART_CR1_IDLEIE ) & 0x1;
 	// 1. Check the status of IDLE flag bit in the SR and IDLEIE bit in CR1
 	// 2. If both are set:
 	//    - Clear the IDLE flag (Refer to the RM to understand the clear sequence!)
 	//    - Call the application callback with USART_EVENT_IDLE
-	// TODO
+	if (temp1 && temp2)
+	{
+		//IDLE clearing
+		(void)pUSARTHandle->pUSARTx->SR;
+		(void)pUSARTHandle->pUSARTx->DR;
+		USART_ApplicationEventCallback(pUSARTHandle, USART_EVENT_IDLE);
+	}
 
 /************************* Check for Overrun (ORE) detection flag ***********************/
 
